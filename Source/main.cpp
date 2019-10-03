@@ -27,7 +27,7 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 	AddArgument(O('r', "Reverse sorting order.", Options::ReverseSorting, true));
 	AddArgument(O('s', "Sort by file size.", Options::Sorting, SORT_SIZE));
 	AddArgument(O('t', "Sort by time modified.", Options::Sorting, SORT_MODIFIED));
-	AddArgument(O('A', "Like `a` but do not list implied `.` and `..`.", Options::ShowAll, 2));
+	//AddArgument(O('A', "Like `a` but do not list implied `.` and `..`.", Options::ShowAll, 2)); @TODO
 	AddArgument(O('F', "Add a `\\` after all directory names.", Options::Indicators, true));
 	AddArgument(O('L', "Seperate files using spaces instead of newlines.", Options::NewLine, true));
 	AddArgument(O('Q', "Never quote file names.", Options::Quoting, 2));
@@ -59,7 +59,8 @@ SkipArgs:
 	bool IsDirectory;
 	if (Options::Color)
 		PreserveCurrentColor();
-	const TCHAR Seperator = Options::NewLine ? _T('\n') : _T(' ');
+	// Set seperator, always use newline for long listing
+	const TCHAR Seperator = (Options::NewLine || Options::LongListing) ? _T('\n') : _T(' ');
 	for (tstring &FileName : FileNames) {
 		// Check if the file is a directory
 		IsDirectory = GetFileAttributes(FileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
@@ -77,8 +78,13 @@ SkipArgs:
 				std::reverse(Content.begin(), Content.end());
 			// Output
 			for (const FileInfo &File : Content) {
+				// Possibly skip file
 				if ((Options::ShowAll == 0) && File.Hidden)
 					continue;
+				// Output file information for long listing format
+				if (Options::LongListing)
+					OutputFileInfo(File);
+				// Output file name
 				Output(File, Options::Color, Options::Quoting, Options::Indicators);
 				std::cout << Seperator;
 			}

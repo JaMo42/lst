@@ -87,3 +87,6 @@ void Output(const FileInfo &File, int Color, int Quoting, int Indicator) {
 		std::cout << '\\';
 	}
 }
+
+void OutputFileInfo(const FileInfo &File) {
+}

@@ -32,10 +32,16 @@ void SortDir(std::vector<FileInfo> &Dir, int SortingMode);
 void PreserveCurrentColor();
 
 /**
- * @brief Output a file wiht various formatting
+ * @brief Output a file with various formatting
  * @param File - The file to output
  * @param Color - Whether to colorize the output or not
  * @param Quoting - The quoting style
  * @param Indicator - Whether to put indicators behind certain files
  */
 void Output(const FileInfo &File, int Color, int Quoting, int Indicator);
+
+/**
+ * @brief Print file information
+ * @param File - The file to print information for
+ */
+void OutputFileInfo(const FileInfo &File);
