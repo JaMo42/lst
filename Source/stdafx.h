@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <tchar.h>
+#include <io.h>
 
 #include <string>
 #include <vector>

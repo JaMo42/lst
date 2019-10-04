@@ -33,7 +33,7 @@ FileInfo::FileInfo(const WIN32_FIND_DATA &FindData)
 			Type = FILETYPE::Unknown;
 		}
 	}
-	if (Type == FILETYPE::Link) {
+	if (FindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
 		// Resolve the link target
 		HANDLE Handle = CreateFile(
 			Name.c_str(),

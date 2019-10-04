@@ -4,7 +4,6 @@
 #include "Options.h"
 
 namespace Options {
-	int LongListing = false;
 	int ListDir = false;
 	int Sorting = SORT_NAME;
 	int ReverseSorting = false;
@@ -20,7 +19,6 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 #define O(f, d, t, v) {  _T(f), _T(d), t, v }
 	AddArgument(O('a', "Show hidden files and files starting with `.`.", Options::ShowAll, 1));
 	AddArgument(O('d', "If argument is directory, list it, not its contents.", Options::ListDir, true));
-	AddArgument(O('l', "Long listing format.", Options::LongListing, true));
 	AddArgument(O('m', "Do not colorize the output.", Options::Color, false));
 	AddArgument(O('n', "Do not sort the listing.", Options::Sorting, SORT_NONE));
 	AddArgument(O('q', "Always quote file names.", Options::Quoting, 1));
@@ -60,7 +58,7 @@ SkipArgs:
 	if (Options::Color)
 		PreserveCurrentColor();
 	// Set seperator, always use newline for long listing
-	const TCHAR Seperator = (Options::NewLine || Options::LongListing) ? _T('\n') : _T(' ');
+	const TCHAR Seperator = Options::NewLine ? _T('\n') : _T(' ');
 	for (tstring &FileName : FileNames) {
 		// Check if the file is a directory
 		IsDirectory = GetFileAttributes(FileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
@@ -73,19 +71,16 @@ SkipArgs:
 		if (SUCCEEDED(List(FileName, Content))) {
 			// Sort
 			SortDir(Content, Options::Sorting);
-			// Reverse
+			// Maybe reverse
 			if (Options::ReverseSorting)
 				std::reverse(Content.begin(), Content.end());
 			// Output
 			for (const FileInfo &File : Content) {
-				// Possibly skip file
+				// Maybe skip file
 				if ((Options::ShowAll == 0) && File.Hidden)
 					continue;
-				// Output file information for long listing format
-				if (Options::LongListing)
-					OutputFileInfo(File);
-				// Output file name
-				Output(File, Options::Color, Options::Quoting, Options::Indicators);
+				// Output file
+				OutputFile(File, Options::Color, Options::Quoting, Options::Indicators);
 				std::cout << Seperator;
 			}
 		} else {

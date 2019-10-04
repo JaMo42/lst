@@ -44,7 +44,13 @@ void SortDir(std::vector<FileInfo> &Dir, int SortingMode) {
 #undef SORT
 }
 
-tstring Quote(const tstring &FileName, int Quoting) {
+/**
+ * @brief Adds quoting to a file name
+ * @param FileName - The name of the file
+ * @param Quoting - The quoting mode
+ * @return The quoted file name
+ */
+inline tstring Quote(const tstring &FileName, int Quoting) {
 	constexpr const char *SpecialCharacters = " '\"";
 	switch (Quoting) {
 		case 0:
@@ -65,8 +71,11 @@ tstring Quote(const tstring &FileName, int Quoting) {
 	}
 }
 
+
 namespace {
+	// Handle to stdout
 	const static HANDLE HCon = GetStdHandle(STD_OUTPUT_HANDLE);
+	// Cache for output colors
 	WORD PrevColor;
 }
 
@@ -77,7 +86,7 @@ void PreserveCurrentColor() {
 	::PrevColor = csbi.wAttributes;
 }
 
-void Output(const FileInfo &File, int Color, int Quoting, int Indicator) {
+void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator) {
 	const WORD FileColor = FILECOLOR[(int)File.Type];
 	if (Color && FileColor != 0)
 		SetConsoleTextAttribute(::HCon, FileColor);
@@ -86,7 +95,4 @@ void Output(const FileInfo &File, int Color, int Quoting, int Indicator) {
 	if (Indicator && File.Type == FILETYPE::Directory) {
 		std::cout << '\\';
 	}
-}
-
-void OutputFileInfo(const FileInfo &File) {
 }
