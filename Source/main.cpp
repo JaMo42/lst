@@ -25,7 +25,6 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 	AddArgument(O('r', "Reverse sorting order.", Options::ReverseSorting, true));
 	AddArgument(O('s', "Sort by file size.", Options::Sorting, SORT_SIZE));
 	AddArgument(O('t', "Sort by time modified.", Options::Sorting, SORT_MODIFIED));
-	//AddArgument(O('A', "Like `a` but do not list implied `.` and `..`.", Options::ShowAll, 2)); @TODO
 	AddArgument(O('F', "Add a `\\` after all directory names.", Options::Indicators, true));
 	AddArgument(O('L', "Seperate files using spaces instead of newlines.", Options::NewLine, true));
 	AddArgument(O('Q', "Never quote file names.", Options::Quoting, 2));
@@ -33,26 +32,23 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 #undef O
 	// Get options
 	std::vector<tstring> FileNames{};
-	// No arguments were passed, list current directory
-	tstring Flags = _T("");
-	if (argc == 1) {
-		TCHAR buf[MAX_PATH];
-		GetCurrentDirectory(MAX_PATH, buf);
-		FileNames.push_back({ buf });
-		goto SkipArgs;
-	} else {
-		for (int i = 1; i < argc; i++) {
-			if (tstrcmp(argv[i], _T("--help")) == 0) {
-				Help();
-				exit(0);
-			} else if (argv[i][0] == _T('-')) {
-				GetOpts(argv[i]);
-			} else {
-				FileNames.push_back({ argv[i] });
-			}
+	// Parse the arguments
+	for (int i = 1; i < argc; i++) {
+		if (tstrcmp(argv[i], _T("--help")) == 0) {
+			Help();
+			exit(0);
+		} else if (argv[i][0] == _T('-')) {
+			GetOpts(argv[i]);
+		} else {
+			FileNames.push_back({ argv[i] });
 		}
 	}
-SkipArgs:
+	// If no files were specified, add the current directory
+	if (FileNames.empty()) {
+		TCHAR buf[MAX_PATH];
+		GetCurrentDirectory(MAX_PATH, buf);
+		FileNames.push_back({buf});
+	}
 	std::vector<FileInfo> Content;
 	bool IsDirectory;
 	if (Options::Color)
