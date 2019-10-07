@@ -11,12 +11,11 @@ struct Option {
 
 namespace {
 	std::vector<Option> Options;
-	std::string Flags;
+	tstring Flags;
 }
-
 
 void AddArgument(Option &&Opt);
 
-void GetOpts(const char *Argument);
+void GetOpts(const TCHAR *Argument);
 
 void Help();

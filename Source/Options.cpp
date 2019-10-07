@@ -6,20 +6,20 @@ void AddArgument(Option &&Opt) {
 	::Flags += Opt.Flag;
 }
 
-void GetOpts(const char *Argument) {
+void GetOpts(const TCHAR *Argument) {
 	size_t Pos;
 	for (int i = 1; Argument[i] != 0; i++) {
 		Pos = ::Flags.find(Argument[i]);
-		if (Pos != std::string::npos) {
+		if (Pos != tstring::npos) {
 			::Options[Pos].Target = ::Options[Pos].Value;
 		}
 	}
 }
 
 void Help() {
-	std::cout << "Usage:\tlst [" << ::Flags << "] [file ...]" << std::endl;
-	std::cout << "Arguments:" << std::endl;
+	tcout << _T("Usage:\tlst [") << ::Flags << _T("] [file ...]") << std::endl;
+	tcout << _T("Arguments:") << std::endl;
 	for (const Option &Opt : ::Options) {
-		std::cout << Opt.Flag << '\t' << Opt.Description << std::endl;
+		tcout << Opt.Flag << _T('\t') << Opt.Description << std::endl;
 	}
 }
