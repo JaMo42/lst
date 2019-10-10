@@ -22,7 +22,7 @@ FileInfo::FileInfo(const WIN32_FIND_DATA &FindData)
 		const size_t LastDot = Name.find_last_of(_T('.'));
 		if (LastDot != std::string::npos) {
 			// Check for executable of shortcut
-			const std::string Extension = Name.substr(LastDot + 1);
+			const tstring Extension = Name.substr(LastDot + 1);
 			if (Extension == _T("exe")) {
 				Type = FILETYPE::Executable;
 			} else if (Extension == _T("lnk")) {

@@ -62,10 +62,10 @@ inline tstring Quote(const tstring &FileName, int Quoting) {
 			return FileName;
 			HasSpecial:
 		case 1:
-			if (FileName.find("\"") != std::string::npos)
-				return '\'' + FileName + '\'';
+			if (FileName.find(_T("\"")) != std::string::npos)
+				return _T('\'') + FileName + _T('\'');
 			else
-				return '"' + FileName + '"';
+				return _T('"') + FileName + _T('"');
 		case 2:
 			return FileName;
 	}
@@ -90,9 +90,9 @@ void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator) {
 	const WORD FileColor = FILECOLOR[(int)File.Type];
 	if (Color && FileColor != 0)
 		SetConsoleTextAttribute(::HCon, FileColor);
-	std::cout << Quote(File.Name, Quoting);
+	tcout << Quote(File.Name, Quoting);
 	SetConsoleTextAttribute(::HCon, ::PrevColor);
 	if (Indicator && File.Type == FILETYPE::Directory) {
-		std::cout << '\\';
+		tcout << _T('\\');
 	}
 }
