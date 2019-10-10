@@ -3,7 +3,7 @@
 
 
 #if defined(UNICODE) || defined(_UNICODE)
-#pragam message("You should be using UTF-8.")
+#pragma message("You should be using UTF-8.")
 
 using tstring = std::wstring;
 #define tstrcmp wcscmp
