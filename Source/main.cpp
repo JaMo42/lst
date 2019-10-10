@@ -4,13 +4,21 @@
 #include "Options.h"
 
 namespace Options {
+    // List directories themselves, not their contents
 	int ListDir = false;
+    // Sorting mode
 	int Sorting = SORT_NAME;
+    // Whether to reversee the sorting order
 	int ReverseSorting = false;
+    // Whther to add incicators behind specific files (curently only \ after directories)
 	int Indicators = false;
+    // Whether to show all files
 	int ShowAll = false;
+    // The quoting mode
 	int Quoting = 0;
+    // Whther to show colors or not
 	int Color = true;
+    // Whether to seperate entries by newline instead of spaces
 	int NewLine = true;
 }
 
