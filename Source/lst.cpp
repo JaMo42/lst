@@ -53,7 +53,7 @@ void SortDir(std::vector<FileInfo> &Dir, int SortingMode) {
 inline tstring Quote(const tstring &FileName, int Quoting) {
 	constexpr const char *SpecialCharacters = " '\"";
 	switch (Quoting) {
-		case 0:
+		case QUOTE_AUTO:
 			for (const char &C : FileName) {
 				if (strchr(SpecialCharacters, C)) {
 					goto HasSpecial;
@@ -61,12 +61,12 @@ inline tstring Quote(const tstring &FileName, int Quoting) {
 			}
 			return FileName;
 			HasSpecial:
-		case 1:
+		case QUOTE_ALWAYS:
 			if (FileName.find(_T("\"")) != std::string::npos)
 				return _T('\'') + FileName + _T('\'');
 			else
 				return _T('"') + FileName + _T('"');
-		case 2:
+		case QUOTE_NEVER:
 			return FileName;
 	}
 }

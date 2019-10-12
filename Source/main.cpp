@@ -15,7 +15,7 @@ namespace Options {
     // Whether to show all files
 	int ShowAll = false;
     // The quoting mode
-	int Quoting = 0;
+	int Quoting = QUOTE_AUTO;
     // Whther to show colors or not
 	int Color = true;
     // Whether to seperate entries by newline instead of spaces

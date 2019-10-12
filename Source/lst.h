@@ -11,6 +11,13 @@ enum {
 	SORT_CREATED
 };
 
+// Quoting modes
+enum {
+	QUOTE_AUTO,
+	QUOTE_ALWAYS,
+	QUOTE_NEVER
+};
+
 /**
  * @brief Lists a directory or file
  * @param Directory - The name of the directory or file
