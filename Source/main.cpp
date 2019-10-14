@@ -69,8 +69,15 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 		// If listing directory contents, and the item is a directory, append
 		// wildcard to the end, this is required to list the contents of the
 		// directory and not the directory itself.
-		if (IsDirectory && !Options::ListDir)
-			FileName += _T("\\*");
+		// Otherwise the reiling [back]slash, if present, must be removed, in order
+		// to list the directory itself.
+		if (IsDirectory) {
+			if (!Options::ListDir) {
+				FileName += _T("\\*");
+			} else if (FileName.back() == '/' || FileName.back() == '\\') {
+				FileName.pop_back();
+			}
+		}
 		// List
 		if (SUCCEEDED(List(FileName, Content))) {
 			// Sort
