@@ -17,7 +17,7 @@ void GetOpts(const TCHAR *Argument) {
 }
 
 void Help() {
-	tcout << _T("Usage:\tlst [") << ::Flags << _T("] [file ...]") << std::endl;
+	tcout << _T("Usage:\tlst [") << ::Flags << _T("] [file]...") << std::endl;
 	tcout << _T("Arguments:") << std::endl;
 	for (const Option &Opt : ::Options) {
 		tcout << Opt.Flag << _T('\t') << Opt.Description << std::endl;
