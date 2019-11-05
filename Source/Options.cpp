@@ -7,9 +7,8 @@ void AddArgument(Option &&Opt) {
 }
 
 void GetOpts(const TCHAR *Argument) {
-	size_t Pos;
 	for (int i = 1; Argument[i] != 0; i++) {
-		Pos = ::Flags.find(Argument[i]);
+		const std::size_t Pos = ::Flags.find(Argument[i]);
 		if (Pos != tstring::npos) {
 			::Options[Pos].Target = ::Options[Pos].Value;
 		}

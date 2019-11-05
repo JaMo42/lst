@@ -58,14 +58,13 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 		FileNames.push_back({buf});
 	}
 	std::vector<FileInfo> Content;
-	bool IsDirectory;
 	if (Options::Color)
 		PreserveCurrentColor();
 	// Set seperator, always use newline for long listing
 	const TCHAR Seperator = Options::NewLine ? _T('\n') : _T(' ');
 	for (tstring &FileName : FileNames) {
 		// Check if the file is a directory
-		IsDirectory = GetFileAttributes(FileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
+		const bool IsDirectory = GetFileAttributes(FileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
 		// If listing directory contents, and the item is a directory, append
 		// wildcard to the end, this is required to list the contents of the
 		// directory and not the directory itself.
