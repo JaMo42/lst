@@ -71,9 +71,9 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 		// Otherwise the reiling [back]slash, if present, must be removed, in order
 		// to list the directory itself.
 		if (IsDirectory) {
-			if (!Options::ListDir) {
+			if (!Options::ListDir && FileName.back() != _T('*')) {
 				FileName += _T("\\*");
-			} else if (FileName.back() == '/' || FileName.back() == '\\') {
+			} else if (FileName.back() == _T('/') || FileName.back() == _T('\\')) {
 				FileName.pop_back();
 			}
 		}
