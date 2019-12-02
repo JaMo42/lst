@@ -4,6 +4,7 @@
 
 
 struct FileInfo {
+	HANDLE Handle;
 	FILETYPE Type;
 	tstring Name;
 	tstring LinkName;

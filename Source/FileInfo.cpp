@@ -11,6 +11,16 @@ FileInfo::FileInfo(const WIN32_FIND_DATA &FindData)
 	LinkOK{},
 	Hidden(FindData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || FindData.cFileName[0] == _T('.'))
 {
+	// Get file handle
+	Handle = CreateFile(
+		Name.c_str(),
+		GENERIC_READ,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
 	// Try to resolve filetype from flags
 	for (unsigned i = 0; i < (unsigned)FILETYPE::COUNT; i++)
 		if (FiletypeAttributes[i] & FindData.dwFileAttributes) {
@@ -35,18 +45,7 @@ FileInfo::FileInfo(const WIN32_FIND_DATA &FindData)
 	}
 	if (FindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
 		// Resolve the link target
-		HANDLE Handle = CreateFile(
-			Name.c_str(),
-			GENERIC_READ,
-			FILE_SHARE_READ,
-			NULL,
-			OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL,
-			NULL
-		);
 		TCHAR buf[MAX_PATH];
 		LinkOK = GetFinalPathNameByHandle(Handle, buf, MAX_PATH, NULL);
 	}
-	// Resovling the target of a shortcut is far to complicated and extensive
-	// and is not worth to implement.
 }
