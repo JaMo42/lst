@@ -215,9 +215,7 @@ void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator) {
 void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator) {
 	// Get number of links
 	BY_HANDLE_FILE_INFORMATION fi = {0};
-	if (GetFileInformationByHandle(File.Handle, &fi) != ERROR_SUCCESS) {
-		--fi.nNumberOfLinks;
-	}
+	GetFileInformationByHandle(File.Handle, &fi);
 	// Get owner and group
 	const auto [Owner, Group] = ::GetOwnerAndGroup(File);
 	// Get the size
