@@ -8,7 +8,7 @@ A directory listing tool similiar to Plan 9 ls.
 ## Usage
 
 ```
-Usage:  lst [-admnqrstFLQT] [file...]
+Usage:  lst [-adlmnqrstFLQT] [file...]
 Arguments:
 a       Show hidden files and files starting with `.`.
 d       If argument is directory, list it, not its contents.
