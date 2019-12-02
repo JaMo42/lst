@@ -1,8 +1,5 @@
 # lst
 
-[![CodeFactor](https://www.codefactor.io/repository/github/jamo42/lst/badge)](https://www.codefactor.io/repository/github/jamo42/lst)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/78dbf191dfa54757a887badcc010cc01)](https://www.codacy.com/manual/JaMo42/lst?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=JaMo42/lst&amp;utm_campaign=Badge_Grade)
-
 A directory listing tool similiar to Plan 9 ls.
 
 ## Usage
