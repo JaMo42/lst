@@ -1,7 +1,6 @@
 #pragma once
 #include "stdafx.h"
 #include "FileInfo.h"
-
 // Sorting modes
 enum {
 	SORT_NONE,
@@ -46,3 +45,9 @@ void PreserveCurrentColor();
  * @param Indicator - Whether to put indicators behind certain files
  */
 void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator);
+
+/**
+ * @brief Output file information in long format
+ * See @ref OutputFile for parameters
+ */
+void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator);

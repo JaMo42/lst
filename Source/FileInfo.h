@@ -11,7 +11,7 @@ struct FileInfo {
 	bool LinkOK;
 	FILETIME Creation;
 	FILETIME LastWrite;
-	ULONG64 Size;
+	DWORD Size;
 	bool Hidden;
 
 	FileInfo(const WIN32_FIND_DATA &FindData);

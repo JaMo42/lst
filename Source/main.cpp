@@ -4,21 +4,23 @@
 #include "Options.h"
 
 namespace Options {
-    // List directories themselves, not their contents
+	// Whether to do a long listing
+	int LongListing = false;
+	// List directories themselves, not their contents
 	int ListDir = false;
-    // Sorting mode
+	// Sorting mode
 	int Sorting = SORT_NAME;
-    // Whether to reversee the sorting order
+	// Whether to reversee the sorting order
 	int ReverseSorting = false;
-    // Whther to add incicators behind specific files (curently only \ after directories)
+	// Whther to add incicators behind specific files (curently only \ after directories)
 	int Indicators = false;
-    // Whether to show all files
+	// Whether to show all files
 	int ShowAll = false;
-    // The quoting mode
+	// The quoting mode
 	int Quoting = QUOTE_AUTO;
-    // Whther to show colors or not
+	// Whether to show colors or not
 	int Color = true;
-    // Whether to seperate entries by newline instead of spaces
+	// Whether to seperate entries by newline instead of spaces
 	int NewLine = true;
 }
 
@@ -27,6 +29,7 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 #define O(f, d, t, v) {  _T(f), _T(d), t, v }
 	AddArgument(O('a', "Show hidden files and files starting with `.`.", Options::ShowAll, 1));
 	AddArgument(O('d', "If argument is directory, list it, not its contents.", Options::ListDir, true));
+	AddArgument(O('l', "Use a long listing format.", Options::LongListing, true));
 	AddArgument(O('m', "Do not colorize the output.", Options::Color, false));
 	AddArgument(O('n', "Do not sort the listing.", Options::Sorting, SORT_NONE));
 	AddArgument(O('q', "Always quote file names.", Options::Quoting, 1));
@@ -90,8 +93,12 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 				if ((Options::ShowAll == 0) && File.Hidden)
 					continue;
 				// Output file
-				OutputFile(File, Options::Color, Options::Quoting, Options::Indicators);
-				std::cout << Seperator;
+				if (Options::LongListing) {
+					OutputFileLong(File, Options::Color, Options::Quoting, Options::Indicators);
+				} else {
+					OutputFile(File, Options::Color, Options::Quoting, Options::Indicators);
+					std::cout << Seperator;
+				}
 			}
 		} else {
 			tcout << _T("Could not list ") << FileName << _T('\n');

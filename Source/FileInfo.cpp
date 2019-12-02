@@ -5,20 +5,21 @@ FileInfo::FileInfo(const WIN32_FIND_DATA &FindData)
 	: Name(FindData.cFileName),
 	Creation(FindData.ftCreationTime),
 	LastWrite(FindData.ftLastWriteTime),
-	Size((FindData.nFileSizeHigh *((ULONG64)MAXDWORD + 1)) + FindData.nFileSizeLow),
+	Size(FindData.nFileSizeLow),
 	Type(FILETYPE::Normal),
 	LinkName{},
 	LinkOK{},
 	Hidden(FindData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || FindData.cFileName[0] == _T('.'))
 {
-	// Get file handle
+	// Get file/directory handle
 	Handle = CreateFile(
 		Name.c_str(),
 		GENERIC_READ,
 		FILE_SHARE_READ,
 		NULL,
 		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
+		// Set flag for getting handle of either a directory or a file
+		(FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FILE_FLAG_BACKUP_SEMANTICS : FILE_ATTRIBUTE_NORMAL,
 		NULL
 	);
 	// Try to resolve filetype from flags

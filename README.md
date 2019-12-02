@@ -12,6 +12,7 @@ Usage:  lst [-admnqrstFLQT] [file...]
 Arguments:
 a       Show hidden files and files starting with `.`.
 d       If argument is directory, list it, not its contents.
+l       Use a long listing format.
 m       Do not colorize the output.
 n       Do not sort the listing.
 q       Always quote file names.
@@ -23,3 +24,18 @@ L       Seperate files using spaces instead of newlines.
 Q       Never quote file names.
 T       Sort by time created.
 ```
+
+## Long listing format
+
+```
+  1 Administrator Administrator 1234MB Jan 13 07:11 afile.exe
+```
+
+The columns represent:
+
+- The number of links to the file
+- Owner name
+- Group name
+- Size
+- Time of last modification
+- Name
