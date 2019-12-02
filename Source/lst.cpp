@@ -214,6 +214,9 @@ void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator) {
 
 void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator) {
 	// Get number of links
+	// @TODO
+	// This is kind of broken,as it only gives one link for directories (being ..) and no others
+	// I tried using std::filesystem but calling std::filesystem::hardlink_count just crashed the program.
 	BY_HANDLE_FILE_INFORMATION fi = {0};
 	GetFileInformationByHandle(File.Handle, &fi);
 	// Get owner and group
