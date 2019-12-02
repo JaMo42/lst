@@ -35,7 +35,7 @@ The columns represent:
 
 - The file type letter
   - `-` - Normal
-  - `?` - Unlknown
+  - `?` - Unknown
   - `d` - Directory
   - `x` - Executable
   - `l` - Link or shortcut
