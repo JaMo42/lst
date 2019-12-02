@@ -1,6 +1,6 @@
 # lst
 
-A directory listing tool similiar to Plan 9 ls.
+A directory listing tool for Windows similiar to Plan 9 ls.
 
 ## Usage
 
