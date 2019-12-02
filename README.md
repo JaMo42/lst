@@ -28,7 +28,7 @@ T       Sort by time created.
 ## Long listing format
 
 ```
-  1 Administrator Administrator 1234MB Jan 13 07:11 afile.exe
+  1 Administrator Administrator 1234MB Jan 13 07:11 afile.exe -> C:/path/to/target/target.exe
 ```
 
 The columns represent:
@@ -39,3 +39,4 @@ The columns represent:
 - Size
 - Time of last modification
 - Name
+- Link target (If the file is a link and the target exists)
