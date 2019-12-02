@@ -8,7 +8,7 @@ FileInfo::FileInfo(const WIN32_FIND_DATA &FindData)
 	Size(FindData.nFileSizeLow),
 	Type(FILETYPE::Normal),
 	LinkName{},
-	LinkOK{},
+	LinkOK{false},
 	Hidden(FindData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || FindData.cFileName[0] == _T('.'))
 {
 	// Get file/directory handle
@@ -44,9 +44,12 @@ FileInfo::FileInfo(const WIN32_FIND_DATA &FindData)
 			Type = FILETYPE::Unknown;
 		}
 	}
-	if (FindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+	if (Type == FILETYPE::Link) {
 		// Resolve the link target
 		TCHAR buf[MAX_PATH];
 		LinkOK = GetFinalPathNameByHandle(Handle, buf, MAX_PATH, NULL);
+		if (LinkOK) {
+			LinkName = buf + 4;
+		}
 	}
 }

@@ -229,5 +229,8 @@ void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator)
 	// %s %02d %02d:%02d
 	tprintf(_T("%c %3d %s %s %6s %s "), FiletypeChars[(unsigned)File.Type], fi.nNumberOfLinks, Owner.c_str(), Group.c_str(), Size.c_str(), Time.c_str());
 	OutputFile(File, Color, Quoting, Indicator);
-	std::cout << std::endl;
+	if (File.LinkOK) {
+		tcout << " -> " << File.LinkName;
+	}
+	tcout << std::endl;
 }
