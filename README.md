@@ -8,7 +8,7 @@ A directory listing tool similiar to Plan 9 ls.
 ## Usage
 
 ```
-Usage:  lst [-admnqrstFLQT] [file...]
+Usage:  lst [-adlmnqrstFLQT] [file...]
 Arguments:
 a       Show hidden files and files starting with `.`.
 d       If argument is directory, list it, not its contents.
@@ -28,11 +28,20 @@ T       Sort by time created.
 ## Long listing format
 
 ```
-  1 Administrator Administrator 1234MB Jan 13 07:11 afile.exe -> C:/path/to/target/target.exe
+x  1 Administrator Administrator 1234MB Jan 13 07:11 afile.exe -> C:/path/to/target/target.exe
 ```
 
 The columns represent:
 
+- The file type letter
+  - `-` - Normal
+  - `?` - Unlknown
+  - `d` - Directory
+  - `x` - Executable
+  - `l` - Link or shortcut
+  - `s` - System
+  - `D` - Device
+  - `v` - Virtual
 - The number of links to the file
 - Owner name
 - Group name
