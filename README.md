@@ -25,7 +25,7 @@ T       Sort by time created.
 ## Long listing format
 
 ```
-x  1 Administrator Administrator 1234MB Jan 13 07:11 afile.exe -> C:/path/to/target/target.exe
+x  1 Administ Administ 1234MB Jan 13 07:11 afile.exe -> C:/path/to/target/target.exe
 ```
 
 The columns represent:
@@ -40,8 +40,8 @@ The columns represent:
   - `D` - Device
   - `v` - Virtual
 - The number of links to the file
-- Owner name
-- Group name
+- Owner name (limited to 8 characters)
+- Group name (limited to 8 characters)
 - Size
 - Time of last modification
 - Name
