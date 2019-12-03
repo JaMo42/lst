@@ -49,5 +49,6 @@ void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator);
 /**
  * @brief Output file information in long format
  * See @ref OutputFile for parameters
+ * @param NameLength - The length for owner and group names
  */
-void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator);
+void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator, int NameLength);

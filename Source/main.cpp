@@ -94,7 +94,7 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 					continue;
 				// Output file
 				if (Options::LongListing) {
-					OutputFileLong(File, Options::Color, Options::Quoting, Options::Indicators);
+					OutputFileLong(File, Options::Color, Options::Quoting, Options::Indicators, 8);
 				} else {
 					OutputFile(File, Options::Color, Options::Quoting, Options::Indicators);
 					std::cout << Seperator;

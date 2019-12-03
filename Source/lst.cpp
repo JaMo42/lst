@@ -212,7 +212,7 @@ void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator) {
 }
 
 
-void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator) {
+void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator, int NameLength) {
 	// Get number of links
 	// @TODO
 	// This is kind of broken,as it only gives one link for directories (being ..) and no others
@@ -227,7 +227,14 @@ void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator)
 	const tstring Time = ::FormatTime(File.LastWrite);
 	// Print information
 	// %s %02d %02d:%02d
-	tprintf(_T("%c %3d %s %s %6s %s "), FiletypeChars[(unsigned)File.Type], fi.nNumberOfLinks, Owner.c_str(), Group.c_str(), Size.c_str(), Time.c_str());
+	tprintf(_T("%c %3d %*.*s %*.*s %6s %s "),
+		FiletypeChars[(unsigned)File.Type],
+		fi.nNumberOfLinks,
+		NameLength, NameLength, Owner.c_str(),
+		NameLength, NameLength, Group.c_str(),
+		Size.c_str(),
+		Time.c_str()
+	);
 	OutputFile(File, Color, Quoting, Indicator);
 	if (File.LinkOK) {
 		tcout << " -> " << File.LinkName;
