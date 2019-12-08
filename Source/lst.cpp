@@ -169,13 +169,14 @@ std::pair<tstring, tstring> GetOwnerAndGroup(const FileInfo &File) {
 }
 
 tstring FormatSize(DWORD Size) {
-	tstring sizes[] = {_T("B"), _T("KB"), _T("MB"), _T("GB"), _T("TB"), _T("PB")};
+	const static tstring Sizes[] = {_T("B"), _T("KB"), _T("MB"), _T("GB"), _T("TB"), _T("PB")};
+	Size = min(Size, 9999);
 	int order = 0;
 	while (Size >= 1024 && order < 5) {
 		++order;
 		Size /= 1024;
 	}
-	return to_tstring(Size) + sizes[order];
+	return to_tstring(Size) + Sizes[order];
 }
 
 tstring FormatTime(const FILETIME& FileTime) {
@@ -227,9 +228,9 @@ void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator,
 	const tstring Time = ::FormatTime(File.LastWrite);
 	// Print information
 	// %s %02d %02d:%02d
-	tprintf(_T("%c %3d %*.*s %*.*s %6s %s "),
+	tprintf(_T("%c %2d %*.*s %*.*s %6s %s "),
 		FiletypeChars[(unsigned)File.Type],
-		fi.nNumberOfLinks,
+		min(fi.nNumberOfLinks, 99),
 		NameLength, NameLength, Owner.c_str(),
 		NameLength, NameLength, Group.c_str(),
 		Size.c_str(),
