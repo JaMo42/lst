@@ -1,5 +1,6 @@
 #pragma once
 
+// File types
 enum class FILETYPE {
 	Normal,
 	Unknown,
@@ -13,20 +14,11 @@ enum class FILETYPE {
 	COUNT
 };
 
-constexpr const char *FILETYPENAME[] = {
-	"Normal",
-	"Unknown",
-	"Directory",
-	"Executable",
-	"Link",
-	"Shortcut",
-	"System",
-	"Virtual",
-	"Device"
-};
-
+// Display letters and indicators for each filetype
 constexpr const TCHAR FiletypeChars[] = _T("-?dxlsDv");
 
+// Windows file attributes for file types.
+// If the value is 0, the respective filetype is determined by something else.
 constexpr DWORD FiletypeAttributes[] = {
 	0,  // No flag for this
 	0,  // No flag for this
@@ -39,6 +31,7 @@ constexpr DWORD FiletypeAttributes[] = {
 	FILE_ATTRIBUTE_DEVICE
 };
 
+// Output colors for filetypes
 constexpr WORD FILECOLOR[] = {
 	0,
 	0,

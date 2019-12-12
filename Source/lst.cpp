@@ -168,6 +168,10 @@ std::pair<tstring, tstring> GetOwnerAndGroup(const FileInfo &File) {
 	return Return;
 }
 
+/**
+ * Formats file size for output.
+ * @param Size - The size to format.
+ */
 tstring FormatSize(DWORD Size) {
 	const static tstring Sizes[] = {_T("B"), _T("KB"), _T("MB"), _T("GB"), _T("TB"), _T("PB")};
 	Size = min(Size, 9999);
@@ -178,11 +182,13 @@ tstring FormatSize(DWORD Size) {
 	}
 	return to_tstring(Size) + Sizes[order];
 }
-
+/**
+ * @brief Formats filetime for output.
+ * @param FileTime - The filetime to format.
+ */
 tstring FormatTime(const FILETIME& FileTime) {
 	SYSTEMTIME Time = {0};
 	FileTimeToSystemTime(&FileTime, &Time);
-	//Jan 13 07:11
 	TCHAR TimeBuf[13] = {0};
 	// Convert SYSTEMTIME to std::tm
 	std::tm timeinfo = {0};
@@ -214,10 +220,7 @@ void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator) {
 
 
 void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator, int NameLength) {
-	// Get number of links
-	// @TODO
-	// This is kind of broken,as it only gives one link for directories (being ..) and no others
-	// I tried using std::filesystem but calling std::filesystem::hardlink_count just crashed the program.
+	// Get file information for number of links
 	BY_HANDLE_FILE_INFORMATION fi = {0};
 	GetFileInformationByHandle(File.Handle, &fi);
 	// Get owner and group
@@ -227,7 +230,6 @@ void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator,
 	// Get the modification time
 	const tstring Time = ::FormatTime(File.LastWrite);
 	// Print information
-	// %s %02d %02d:%02d
 	tprintf(_T("%c %2d %*.*s %*.*s %6s %s "),
 		FiletypeChars[(unsigned)File.Type],
 		min(fi.nNumberOfLinks, 99),
