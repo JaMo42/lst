@@ -209,10 +209,12 @@ tstring FormatTime(const FILETIME& FileTime) {
 
 void OutputFile(const FileInfo &File, int Color, int Quoting, int Indicator) {
 	const WORD FileColor = FILECOLOR[(int)File.Type];
-	if (Color && FileColor != 0)
+  Color = Color && FileColor;
+	if (Color)
 		SetConsoleTextAttribute(::HCon, FileColor);
 	tcout << Quote(File.Name, Quoting);
-	SetConsoleTextAttribute(::HCon, ::PrevColor);
+  if (Color)
+  	SetConsoleTextAttribute(::HCon, ::PrevColor);
 	if (Indicator && File.Type == FILETYPE::Directory) {
 		tcout << _T('\\');
 	}
