@@ -22,6 +22,8 @@ namespace Options {
 	int Color = true;
 	// Whether to seperate entries by newline instead of spaces
 	int NewLine = true;
+	// Whether to recursively list subdirectories
+	int Recursive = false;
 }
 
 int _tmain(const int argc, const TCHAR *argv[]) {
@@ -37,7 +39,7 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 	AddArgument(O('s', "Sort by file size.", Options::Sorting, SORT_SIZE));
 	AddArgument(O('t', "Sort by time modified.", Options::Sorting, SORT_MODIFIED));
 	AddArgument(O('F', "Add a `\\` after all directory names.", Options::Indicators, true));
-	AddArgument(O('L', "Seperate files using spaces instead of newlines.", Options::NewLine, true));
+	AddArgument(O('L', "Seperate files using spaces instead of newlines.", Options::NewLine, false));
 	AddArgument(O('Q', "Never quote file names.", Options::Quoting, 2));
 	AddArgument(O('T', "Sort by time created.", Options::Sorting, SORT_CREATED));
 #undef O
@@ -64,14 +66,14 @@ int _tmain(const int argc, const TCHAR *argv[]) {
 	if (Options::Color)
 		PreserveCurrentColor();
 	// Set seperator, always use newline for long listing
-	const TCHAR Seperator = Options::NewLine ? _T('\n') : _T(' ');
+	const LPCTSTR Seperator = Options::NewLine ? _T("\n") : _T("  ");
 	for (tstring &FileName : FileNames) {
 		// Check if the file is a directory
 		const bool IsDirectory = GetFileAttributes(FileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
 		// If listing directory contents, and the item is a directory, append
 		// wildcard to the end, this is required to list the contents of the
 		// directory and not the directory itself.
-		// Otherwise the reiling [back]slash, if present, must be removed, in order
+		// Otherwise the trailing [back]slash, if present, must be removed in order
 		// to list the directory itself.
 		if (IsDirectory) {
 			if (!Options::ListDir && FileName.back() != _T('*')) {

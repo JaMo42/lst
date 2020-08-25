@@ -57,6 +57,7 @@ void SortDir(std::vector<FileInfo> &Dir, int SortingMode) {
 inline tstring Quote(const tstring &FileName, int Quoting) {
 	constexpr const char *SpecialCharacters = " '\"";
 	switch (Quoting) {
+		default:
 		case QUOTE_AUTO:
 			for (const TCHAR &C : FileName) {
 				if (strchr(SpecialCharacters, C)) {
@@ -234,7 +235,7 @@ void OutputFileLong(const FileInfo &File, int Color, int Quoting, int Indicator,
 	// Print information
 	tprintf(_T("%c %2d %*.*s %*.*s %6s %s "),
 		FiletypeChars[(unsigned)File.Type],
-		min(fi.nNumberOfLinks, 99),
+		min((int)fi.nNumberOfLinks, 99),
 		NameLength, NameLength, Owner.c_str(),
 		NameLength, NameLength, Group.c_str(),
 		Size.c_str(),

@@ -1,6 +1,6 @@
 #pragma once
 #include "Unicode.h"
-#include "Filetype.h"
+#include "FileType.h"
 
 /**
  * Holds file information.
