@@ -16,6 +16,9 @@ constexpr const char *name_color = "\x1b[37m";
 // Color for fields that could not be evluated and are replaced with a ?
 constexpr const char *error_color = "\x1b[31m";
 
+// Color for file names of files for which std::filesystem::status failed
+constexpr const char *file_name_error_color = "\x1b[33m";
+
 //////////////////////////////////////////////////////////////////////////
 // Display
 

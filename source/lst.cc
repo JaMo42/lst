@@ -8,8 +8,6 @@ static const fs::path S_bat_ext { L".bat"s };
 static const fs::path S_cmd_ext { L".cmd"s };
 static const fs::path S_bak_ext { L".bak"s };
 static const fs::path S_tmp_ext { L".tmp"s };
-static const fs::path S_hiberfil { L"hiberfil.sys"s };
-static const fs::path S_swapfile { L"swapfile.sys"s };
 #else
 static const fs::path S_bak_ext { ".bak"s };
 static const fs::path S_tmp_ext { ".tmp"s };
@@ -211,9 +209,16 @@ FileInfo::FileInfo (const fs::path &p)
   : _path (p.filename ())
 {
   let const status = [](const fs::path &p) {
-    return Arguments::dereference ? fs::status (p) : fs::symlink_status (p);
+    return Arguments::dereference ? fs::status (p, S_ec) : fs::symlink_status (p, S_ec);
   };
   let const s = status (p);
+  if (S_ec)
+    {
+      complain (p);
+      add_frills (unicode::path_to_str (p.filename ()), name);
+      status_failed = true;
+      return;
+    }
 
   S_did_complain_about.clear ();
 
@@ -663,13 +668,8 @@ static def file_color (const FileInfo &f) -> const char *
       || f._path.extension () == S_tmp_ext)
     return "\x1b[90m";
 
-#if _WIN32
-  if (f._path == S_hiberfil
-      || f._path == S_swapfile)
-    {
-      return "\x1b[33m";
-    }
-#endif
+  if (f.status_failed)
+    return file_name_error_color;
 
   switch (f.type)
     {
@@ -896,13 +896,9 @@ def print_long (const FileList &files) -> void
 
   for (let const &f : files)
     {
-#ifdef _WIN32
-      if (f._path == S_hiberfil
-          || f._path == S_swapfile)
-        {
-          invalid_time = true;
-        }
-#endif
+      if (f.status_failed)
+        invalid_time = true;
+
       for (let const &col : Arguments::long_columns)
         {
           switch (static_cast<LongColumn::Enum> (col))

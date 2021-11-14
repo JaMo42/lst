@@ -32,17 +32,18 @@ public:
   arena::string name {};
   // Target of link or shortcut
   FileInfo *target {nullptr};
-  arena::string owner {};
-  arena::string group {};
+  arena::string owner { "?" };
+  arena::string group { "?" };
   std::uintmax_t size {0};
   std::time_t time {0};
   FileType type { FileType::unknown };
   unsigned link_count {0};
-  fs::perms perms;
+  fs::perms perms { fs::perms::none };
   // Used for sorting
   // Note: currently also used for coloring of '.tmp' and '.bak' files and for
   // detecting of 'hiberfil.sys' and 'swapfile.sys' on Windows.
   const fs::path _path;
+  bool status_failed { false };
 };
 
 using FileList = std::list<FileInfo>;
