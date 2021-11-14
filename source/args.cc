@@ -47,6 +47,20 @@ static def usage ()
   std::puts ("                        Group directories before files.");
   std::puts ("  -F, --no-classify     Do NOT append indicator to entries.");
   std::puts ("      --file-type       Do not append '*' indicator.");
+  std::puts ("      --format=FORMAT   Format string for long listing format");
+  std::puts ("                          '$t': Type indicator");
+  std::puts ("                          '$p': rwx style permissions");
+  std::puts ("                          '$P': octal permissions");
+  std::puts ("                          '$l': Link count");
+  std::puts ("                          '$o': Owner");
+  std::puts ("                          '$g': Group");
+  std::puts ("                          '$s': Size");
+  std::puts ("                          '$d': Datetime");
+  std::puts ("                          '$n': File name (with -l, also the link target)");
+  std::puts ("                          Anything else is printed literally");
+  std::printf ("                          The default value is '%.*s'\n",
+               static_cast<int> (default_long_output_format.size ()),
+               default_long_output_format.data ());
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
   std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
   std::puts ("  -l                    Use long listing format.");
@@ -67,7 +81,7 @@ static def usage ()
   std::puts ("      --time=WORD       Change the default of using modification times;");
   std::puts ("                          creation time (-c): creation, birth");
   std::puts ("                          access time (-u): atime, access, use;");
-  std::puts ("                          change time: ctime, write");
+  std::puts ("                          change time: ctime, write;");
   std::puts ("                        with -l, WORD determines which time is shown;");
   std::puts ("                        with --sort=time, sort by WORD (newest first)");
   std::puts ("  -u                    Use time of last access for time.");
@@ -78,7 +92,6 @@ static def usage ()
   std::puts ("  -1                    List one file per line.");
   std::puts ("      --english-errors  For Windows, print filesystem related error messages");
   std::puts ("                          in english instead of the current display language.");
-  // --format
 }
 
 static inline def handle_short_opt (char flag)
@@ -139,31 +152,32 @@ static inline def handle_long_opt (std::string_view elem) -> bool
       usage ();
       exit (0);
     }
-  else if (opt_name ==                     "all") all = true;
-  else if (opt_name ==               "recursive") recursive = true;
-  else if (opt_name ==             "no-classify") classify = false;
-  else if (opt_name ==               "file-type") file_type = true;
-  else if (opt_name ==                 "literal") quoting = QuoteMode::literal;
-  else if (opt_name ==              "quote-name") quoting = QuoteMode::double_;
-  else if (opt_name ==                  "escape") nongraphic = NongraphicMode::escape;
-  else if (opt_name ==      "hide-control-chars") nongraphic = NongraphicMode::hide;
-  else if (opt_name ==      "show-control-chars") nongraphic = NongraphicMode::show;
-  else if (opt_name ==          "human-readable") human_readble = 1024;
-  else if (opt_name ==                      "si") human_readble = 1000;
-  else if (opt_name ==               "directory") immediate_dirs = true;
-  else if (opt_name ==                 "reverse") reverse = true;
-  else if (opt_name ==          "english-errors") english_errors = true;
-  else if (opt_name == "group-directories-first") group_directories_first = true;
-  else if (opt_name ==          "case-sensitive") case_sensitive = true;
-  else if (opt_name ==          "ignore-backups") ignore_backups = true;
+  else if (opt_name ==                     "all"sv) all = true;
+  else if (opt_name ==               "recursive"sv) recursive = true;
+  else if (opt_name ==             "no-classify"sv) classify = false;
+  else if (opt_name ==               "file-type"sv) file_type = true;
+  else if (opt_name ==                 "literal"sv) quoting = QuoteMode::literal;
+  else if (opt_name ==              "quote-name"sv) quoting = QuoteMode::double_;
+  else if (opt_name ==                  "escape"sv) nongraphic = NongraphicMode::escape;
+  else if (opt_name ==      "hide-control-chars"sv) nongraphic = NongraphicMode::hide;
+  else if (opt_name ==      "show-control-chars"sv) nongraphic = NongraphicMode::show;
+  else if (opt_name ==          "human-readable"sv) human_readble = 1024;
+  else if (opt_name ==                      "si"sv) human_readble = 1000;
+  else if (opt_name ==               "directory"sv) immediate_dirs = true;
+  else if (opt_name ==                 "reverse"sv) reverse = true;
+  else if (opt_name ==          "english-errors"sv) english_errors = true;
+  else if (opt_name == "group-directories-first"sv) group_directories_first = true;
+  else if (opt_name ==          "case-sensitive"sv) case_sensitive = true;
+  else if (opt_name ==          "ignore-backups"sv) ignore_backups = true;
+  else if (opt_name ==             "dereference"sv) dereference = true;
 
-  else if (opt_name == "color")
+  else if (opt_name == "color"sv)
     {
-      if (arg.empty () || arg == "always" || arg == "yes")
+      if (arg.empty () || arg == "always"sv || arg == "yes"sv)
         Arguments::color = true;
-      else if (arg == "never" || arg == "no")
+      else if (arg == "never"sv || arg == "no"sv)
         Arguments::color = false;
-      else if (arg == "auto" || arg == "tty")
+      else if (arg == "auto"sv || arg == "tty"sv)
         Arguments::color = G_is_a_tty;
       else
         {
@@ -178,15 +192,15 @@ static inline def handle_long_opt (std::string_view elem) -> bool
           return false;
         }
     }
-  else if (opt_name == "sort")
+  else if (opt_name == "sort"sv)
     {
       if (require_arg ()) return false;
-      if (arg == "none")
+      if (arg == "none"sv)
         Arguments::sort_mode = SortMode::none;
-      else if (arg == "extension") Arguments::sort_mode = SortMode::extension;
-      else if (arg ==      "size") Arguments::sort_mode = SortMode::size;
-      else if (arg ==      "time") Arguments::sort_mode = SortMode::time;
-      else if (arg ==   "version") Arguments::sort_mode = SortMode::version;
+      else if (arg == "extension"sv) Arguments::sort_mode = SortMode::extension;
+      else if (arg ==      "size"sv) Arguments::sort_mode = SortMode::size;
+      else if (arg ==      "time"sv) Arguments::sort_mode = SortMode::time;
+      else if (arg ==   "version"sv) Arguments::sort_mode = SortMode::version;
       else
         {
           std::fprintf (stderr, "%s: invalid argument ‘%.*s’ for ‘--%.*s’\n",
@@ -202,7 +216,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
           return false;
         }
     }
-  else if (opt_name == "width")
+  else if (opt_name == "width"sv)
     {
       if (require_arg ()) return false;
       char *end = nullptr;

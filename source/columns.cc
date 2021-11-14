@@ -80,7 +80,7 @@ def Columns::new_column_count () const -> std::size_t
   let const old_cap = o * (M_rows - 1);
   let n = o / 2;
   let const new_cap = n * M_rows;
-  n += (int)ceil ((float)(old_cap - new_cap) / M_rows);
+  n += (int)std::ceil ((float)(old_cap - new_cap) / M_rows);
   return n;
 }
 
@@ -89,7 +89,7 @@ def Columns::reorder () -> void
   let cols = this->new_column_count ();
 
   let new_columns = arena::vector<Column> {};
-  for (let i = 0ui64; i < cols; ++i)
+  for (std::size_t i = 0; i < cols; ++i)
     new_columns.emplace_back ();
 
   let idx = std::make_pair (std::size_t {0}, std::size_t {0});

@@ -121,7 +121,7 @@ def path_to_str (const fs::path &p) -> arena::string
 #ifdef _WIN32
   return arena::string (reinterpret_cast<const char *> (p.u8string ().c_str ()));
 #else
-  return p.string<char> (arena::allocator<char> {});
+  return p.string<char> (arena::Allocator<char> {});
 #endif
 }
 
