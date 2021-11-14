@@ -10,6 +10,7 @@ bool single_column = false;
 bool color = true;
 bool recursive = false;
 bool classify = true;
+bool file_type = false;
 bool immediate_dirs = false;
 bool reverse = false;
 SortMode sort_mode = SortMode::name;
@@ -92,6 +93,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
   else if (opt_name ==                     "all") all = true;
   else if (opt_name ==               "recursive") recursive = true;
   else if (opt_name ==             "no-classify") classify = false;
+  else if (opt_name ==               "file-type") file_type = true;
   else if (opt_name ==                 "literal") quoting = QuoteMode::literal;
   else if (opt_name ==              "quote-name") quoting = QuoteMode::double_;
   else if (opt_name ==                  "escape") nongraphic = NongraphicMode::escape;

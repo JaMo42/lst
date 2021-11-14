@@ -74,6 +74,7 @@ extern bool single_column;
 extern bool color;
 extern bool recursive;
 extern bool classify;
+extern bool file_type;
 extern bool immediate_dirs;
 extern bool reverse;
 extern SortMode sort_mode;

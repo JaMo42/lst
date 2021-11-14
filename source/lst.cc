@@ -600,7 +600,7 @@ def file_indicator (const FileInfo &f) -> char
       case FileType::symlink:    return '@';
       case FileType::fifo:       return '|';
       case FileType::socket:     return '=';
-      case FileType::executable: return '*';
+      case FileType::executable: return Arguments::file_type ? 0 : '*';
       default:                   return 0;
     }
 }
