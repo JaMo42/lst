@@ -877,7 +877,6 @@ def print_long (const FileList &files) -> void
   // Get column widths
   for (let const &f : files)
     {
-      // TODO: Only calculate needed widths
       if (Arguments::long_columns_has.test (LongColumn::name) && !name_is_last)
         name_width = std::max (name_width, file_name_width (f));
       if (Arguments::long_columns_has.test (LongColumn::hard_link_count))
