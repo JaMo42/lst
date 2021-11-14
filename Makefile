@@ -18,8 +18,9 @@ else
 	endif
 endif
 
-SRC = columns.cc unicode.cc args.cc lst.cc main.cc arena_alloc.cc
+SRC = columns.cc unicode.cc args.cc lst.cc main.cc
 OBJ = $(patsubst %.cc,build/%.o,$(SRC))
+OBJ += build/arena_alloc.o
 DEP = $(wildcard source/*.hh)
 
 all: source/stdafx.hh.gch $(OUT)
@@ -29,6 +30,10 @@ source/stdafx.hh.gch: source/stdafx.hh
 	@$(CXX) $(CXXFLAGS) -o $@ $<
 
 build/%.o: source/%.cc $(DEP)
+	@echo ' CXX  $@'
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+build/arena_alloc.o: source/arena_alloc/arena_alloc.cc source/arena_alloc/arena_alloc.hh
 	@echo ' CXX  $@'
 	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 

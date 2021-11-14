@@ -1,0 +1,3 @@
+[submodule "source/arena_alloc"]
+	path = source/arena_alloc
+	url = https://github.com/JaMo42/cpp-arena-allocator
