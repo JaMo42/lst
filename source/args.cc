@@ -1,4 +1,5 @@
 #include "args.hh"
+#include "options.hh"
 
 bool G_is_a_tty;
 
@@ -32,7 +33,37 @@ static def usage ()
   std::puts ("Usage: lst [OPTION]... [FILE]...");
   std::puts ("List information about the FILEs (the current directory by default).");
 
-  // TODO
+  std::puts ("\nOptions:");
+  std::puts ("  -a, --all             Do not ignore starting with '.'");
+  std::puts ("  -b, --escape          Print C-style escapes for nongraphic characters.");
+  //  -B, --ignore-backups
+  std::puts ("  -c, --directory       Show directory names instead of contents.");
+  std::puts ("      --case-sensitive  Do not ignore case when sorting");
+  std::puts ("  -D, --group-directories-first");
+  std::puts ("                        Group directories before files.");
+  std::puts ("  -F, --no-classify     Do NOT append indicator to entries.");
+  std::puts ("      --file-type       Do not append '*' indicator.");
+  std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
+  std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
+  std::puts ("  -l                    Use long listing format.");
+  // -L, --dereference
+  std::puts ("  -N, --literal         Do not quote file names.");
+  std::puts ("  -q, --hide-control-chars");
+  std::puts ("                        Print '?' instead of nongraphic characters.");
+  std::puts ("      --show-control-chars");
+  std::puts ("                        Show nongraphic characters as-is.");
+  std::puts ("  -Q, --quote-name      Enclose entry names in double quotes.");
+  std::puts ("  -r, --reverse         Reverse sorting.");
+  std::puts ("  -R, --recursive       List subdirectories recursively");
+  std::puts ("  -S                    Sort by file size, largest first.");
+  std::puts ("  -t                    Sort y time, newest first.");
+  std::puts ("  -U                    Do not sort; list entries in directory order.");
+  std::puts ("  -v                    Natural sort of version numbers within file names.");
+  std::puts ("      --width=COLS      Set the output width to COLS. Use terminal width if 0.");
+  std::puts ("  -X                    Sort alphabetically by entry extension.");
+  std::puts ("  -1                    List one file per line.");
+  std::puts ("      --english-errors  For Windows, print filesystem related error messages");
+  std::puts ("                        in english instead of the current display language.");
 }
 
 static inline def handle_short_opt (char flag)
@@ -49,7 +80,6 @@ static inline def handle_short_opt (char flag)
       case 'X': Arguments::sort_mode = SortMode::extension; break;
       case 't': Arguments::sort_mode = SortMode::time; break;
       case 'U': Arguments::sort_mode = SortMode::none; break;
-      case 'n': Arguments::sort_mode = SortMode::name; break;
       case 'N': Arguments::quoting = QuoteMode::literal; break;
       case 'Q': Arguments::quoting = QuoteMode::double_; break;
       case 'b': Arguments::nongraphic = NongraphicMode::escape; break;
