@@ -20,7 +20,6 @@
 #include <filesystem>
 #include <functional>
 #include <chrono>
-#include <memory_resource>
 
 #ifdef _WIN32
 #define WIN32_MEAN_AND_LEAN
