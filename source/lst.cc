@@ -840,13 +840,13 @@ static def print_size (std::uintmax_t size, unsigned width = 0) -> int
     {
 no_human:
       if constexpr (dry)
-        return std::snprintf (nullptr, 0, "%llu", size);
+        return std::snprintf (nullptr, 0, "%ju", size);
       else
         {
           if (Arguments::color)
-            return std::printf ("%s%*llu\x1b[0m", file_size_color, width, size);
+            return std::printf ("%s%*ju\x1b[0m", file_size_color, width, size);
           else
-            return std::printf ("%*llu", width, size);
+            return std::printf ("%*ju", width, size);
         }
     }
 }
@@ -1001,7 +1001,7 @@ def print_long (const FileList &files) -> void
                 {
                   if (invalid_time || !f.time)
                     {
-                      std::printf ("            %s?\x1b[0m", error_color, stdout);
+                      std::printf ("            %s?\x1b[0m", error_color);
                       invalid_time = false;
                     }
                   else
