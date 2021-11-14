@@ -632,8 +632,9 @@ def sort_files (FileList &files) -> void
             break;
           case SortMode::time:
             sort = SORT_FUNC {
-              return (a.time < b.time) ^ Arguments::reverse;
+              return (difftime (a.time, b.time) > 0) ^ Arguments::reverse;
             };
+            break;
           case SortMode::version:
             sort = SORT_FUNC {
               // TODO
