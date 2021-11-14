@@ -539,7 +539,7 @@ def sort_files (FileList &files) -> void
             break;
           case SortMode::size:
             sort = SORT_FUNC {
-              return (a.size < b.size) ^ Arguments::reverse;
+              return (a.size > b.size) ^ Arguments::reverse;
             };
             break;
           case SortMode::time:
