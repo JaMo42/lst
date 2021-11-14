@@ -316,6 +316,11 @@ def list_dir (const fs::path &path) -> void
       if (!Arguments::all
           && e.path ().filename ().c_str ()[0] == std::filesystem::path::value_type {'.'})
         continue;
+      if (Arguments::ignore_backups
+          && (e.path ().extension () == S_tmp_ext
+              || e.path ().extension () == S_bak_ext
+              || unicode::path_to_str (e.path ().filename ()).back () == '~'))
+        continue;
 
       l->emplace_back (e.path (), e.status ());
 

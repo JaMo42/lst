@@ -24,6 +24,7 @@ bool group_directories_first = false;
 std::vector<LongColumn> long_columns {};
 std::bitset<LongColumn::text + 1> long_columns_has {};
 bool case_sensitive = false;
+bool ignore_backups = false;
 }
 
 const char *G_program;
@@ -34,11 +35,11 @@ static def usage ()
   std::puts ("List information about the FILEs (the current directory by default).");
 
   std::puts ("\nOptions:");
-  std::puts ("  -a, --all             Do not ignore starting with '.'");
+  std::puts ("  -a, --all             Do not ignore entries starting with '.'");
   std::puts ("  -b, --escape          Print C-style escapes for nongraphic characters.");
-  //  -B, --ignore-backups
+  std::puts ("  -B, --ignore-backups  Do not list entries ending with '~', '.bak', or '.tmp'");
   std::puts ("  -c, --directory       Show directory names instead of contents.");
-  std::puts ("      --case-sensitive  Do not ignore case when sorting");
+  std::puts ("      --case-sensitive  Do not ignore case when sorting.");
   std::puts ("  -D, --group-directories-first");
   std::puts ("                        Group directories before files.");
   std::puts ("  -F, --no-classify     Do NOT append indicator to entries.");
@@ -54,7 +55,7 @@ static def usage ()
   std::puts ("                        Show nongraphic characters as-is.");
   std::puts ("  -Q, --quote-name      Enclose entry names in double quotes.");
   std::puts ("  -r, --reverse         Reverse sorting.");
-  std::puts ("  -R, --recursive       List subdirectories recursively");
+  std::puts ("  -R, --recursive       List subdirectories recursively.");
   std::puts ("  -S                    Sort by file size, largest first.");
   std::puts ("  -t                    Sort y time, newest first.");
   std::puts ("  -U                    Do not sort; list entries in directory order.");
@@ -88,6 +89,7 @@ static inline def handle_short_opt (char flag)
       case 'd': Arguments::immediate_dirs = true; break;
       case 'r': Arguments::reverse = true; break;
       case 'D': Arguments::group_directories_first = true; break;  // Maybe use 'G' instead
+      case 'B': Arguments::ignore_backups = true; break;
       default:
         std::fprintf (stderr, "%s: invalid option -- %c\n", G_program, flag);
         return false;
@@ -136,6 +138,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
   else if (opt_name ==          "english-errors") english_errors = true;
   else if (opt_name == "group-directories-first") group_directories_first = true;
   else if (opt_name ==          "case-sensitive") case_sensitive = true;
+  else if (opt_name ==          "ignore-backups") ignore_backups = true;
 
   else if (opt_name == "color")
     {

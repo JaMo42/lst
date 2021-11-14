@@ -87,6 +87,7 @@ extern bool group_directories_first;
 extern std::vector<LongColumn> long_columns;
 extern std::bitset<LongColumn::text + 1> long_columns_has;
 extern bool case_sensitive;
+extern bool ignore_backups;
 }
 
 def parse_args (int argc, const char **argv,
