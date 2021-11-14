@@ -12,6 +12,7 @@ def Columns::add (const FileInfo *f) -> void
   let const is_quoted = ((Arguments::quoting == QuoteMode::default_)
                          && (f->name.front () == '\'' || f->name.front () == '"')
                          && (f->name.front () == f->name.back ()));
+
   let c = std::find_if (M_columns.begin (), M_columns.end (), [&](const Column &c){
     return c.elems.size () < M_rows;
   });
@@ -19,15 +20,10 @@ def Columns::add (const FileInfo *f) -> void
   if (c == M_columns.end ())
     {
       M_columns.emplace_back ();
-      //M_columns.back ().elems.emplace_back (f, width, is_quoted);
-      //M_columns.back ().width = width;
       M_columns.back ().add (f, width, is_quoted);
     }
   else
     {
-      //c->elems.emplace_back (f, width, is_quoted);
-      //if ((width - is_quoted) > c->width)
-      //  c->width = (width - is_quoted);
       c->add (f, width, is_quoted);
     }
 
@@ -101,9 +97,6 @@ def Columns::reorder () -> void
     {
       for (let const &elem : col.elems)
         {
-          //new_columns[idx.first].elems.push_back (elem);
-          //if ((elem.width - elem.is_quoted) > new_columns[idx.first].width)
-          //  new_columns[idx.first].width = (elem.width - elem.is_quoted);
           new_columns[idx.first].add (elem);
           this->next (idx);
         }

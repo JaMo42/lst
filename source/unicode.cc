@@ -114,10 +114,6 @@ def padding_offset (const arena::string &str) -> int
   return o;
 }
 
-// TODO: consider adding 'path_to_str_temp' converting the path into a static
-// string in the function adn returning a reference to it, since when creating
-// a FileInfo the returned string gets immediately processed into another string
-// anyways.
 def path_to_str (const fs::path &p) -> arena::string
 {
   // On Windows, std::filesystem::path::string raises an encoding error if the

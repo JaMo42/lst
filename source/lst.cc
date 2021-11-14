@@ -135,8 +135,6 @@ static def add_frills (arena::string &&str, arena::string &out)
         quote_char = '\'';
       else if (quote_if_anywhere.find (c) != std::string_view::npos)
         need_quoting = true;
-      // TODO: there are probably more cases that need quoting
-      // (also platform dependency)
     }
   // Numbner sign only requires outing if it is the first character (technically
   // the first non-whitespace character but if there is whitespace before this
