@@ -69,7 +69,6 @@ extern const char *G_program;
 namespace Arguments
 {
 extern bool all;
-extern bool almost_all;
 extern bool long_listing;
 extern bool single_column;
 extern bool color;

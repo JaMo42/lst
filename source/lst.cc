@@ -316,7 +316,6 @@ def list_dir (const fs::path &path) -> void
       if (!Arguments::all
           && e.path ().filename ().c_str ()[0] == std::filesystem::path::value_type {'.'})
         continue;
-      // TODO: almost_all
 
       l->emplace_back (e.path (), e.status ());
 

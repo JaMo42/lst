@@ -5,7 +5,6 @@ bool G_is_a_tty;
 namespace Arguments
 {
 bool all = false;
-bool almost_all = false;
 bool long_listing = false;
 bool single_column = false;
 bool color = true;
@@ -39,7 +38,6 @@ static inline def handle_short_opt (char flag)
   switch (flag)
     {
       case 'a': Arguments::all = true; break;
-      case 'A': Arguments::almost_all = true; break;
       case 'l': Arguments::long_listing = true; break;
       case '1': Arguments::single_column = true; break;
       case 'R': Arguments::recursive = true; break;
@@ -91,7 +89,6 @@ static inline def handle_long_opt (std::string_view elem) -> bool
       exit (0);
     }
   else if (opt_name ==                     "all") all = true;
-  else if (opt_name ==              "almost-all") almost_all = true;
   else if (opt_name ==               "recursive") recursive = true;
   else if (opt_name ==             "no-classify") classify = false;
   else if (opt_name ==                 "literal") quoting = QuoteMode::literal;
