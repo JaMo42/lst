@@ -240,13 +240,16 @@ FileInfo::FileInfo (const fs::path &p)
           size = 0;
         }
 
-      let const t = fs::last_write_time (p, S_ec);
-      if (S_ec)
+      if (!get_file_time (p, time))
         {
+#ifdef _WIN32
+          S_ec = std::error_code (GetLastError (), std::system_category ());
+#else
+          S_ec = std::error_code (errno, std::system_category ());
+#endif
           complain (p);
           time = 0;
         }
-      time = file_time_to_time_t (t);
 
       link_count = fs::hard_link_count (p, S_ec);
       if (S_ec)
@@ -426,6 +429,50 @@ def get_shortcut_target (const fs::path &path, arena::string &target_out) -> boo
 
 #undef CHECK
 
+static def win_file_time_to_time_t (FILETIME ft) -> std::time_t
+{
+  ULARGE_INTEGER conv;
+  conv.LowPart = ft.dwLowDateTime;
+  conv.HighPart = ft.dwHighDateTime;
+  return conv.QuadPart / 10000000ULL - 11644473600ULL;
+}
+
+def get_file_time (const fs::path &path, std::time_t &out) -> bool
+{
+  HANDLE file_handle;
+  FILETIME access, write, creation;
+
+  let const flags = (FILE_FLAG_BACKUP_SEMANTICS
+                     | (Arguments::dereference ? 0 : FILE_FLAG_OPEN_REPARSE_POINT));
+  file_handle = CreateFileW (path.wstring ().c_str (),
+                             GENERIC_READ,
+                             FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                             nullptr,
+                             OPEN_EXISTING,
+                             flags,
+                             nullptr);
+  if (file_handle == INVALID_HANDLE_VALUE)
+    {
+      out = 0;
+      return false;
+    }
+
+  if (!GetFileTime (file_handle, &creation, &access, &write))
+    {
+      out = 0;
+      return false;
+    }
+
+  switch (Arguments::time_mode)
+    {
+      case TimeMode::access: out = win_file_time_to_time_t (access); break;
+      case TimeMode::write: out = win_file_time_to_time_t (write); break;
+      case TimeMode::creation: out = win_file_time_to_time_t (creation); break;
+    }
+
+  return true;
+}
+
 #else // _WIN32
 
 def get_owner_and_group (const fs::path &path, arena::string &owner_out,
@@ -448,6 +495,30 @@ def get_owner_and_group (const fs::path &path, arena::string &owner_out,
 
   owner_out.assign (pw->pw_name);
   group_out.assign (grp->gr_name);
+
+  return true;
+}
+
+def get_file_time (const fs::path &path, std::time_t &out) -> bool
+{
+  struct stat sb {0};
+
+  let const stat_func = Arguments::dereference ? stat : lstat;
+  if (stat_func (path.string<char> (arena::Allocator<char> {}).c_str (), &sb) == -1)
+    {
+      out = 0;
+      return false;
+    }
+
+  switch (Arguments::time_mode)
+    {
+      case TimeMode::access: out = sb.st_atime; break;
+      case TimeMode::write: out = sb.st_mtime; break;
+      // st_ctime is not the creation time but the time of the last inode
+      // change. Unix, per standard, does not store the creation time so this
+      // is the best we can get.
+      case TimeMode::creation: out = sb.st_ctime; break;
+    }
 
   return true;
 }

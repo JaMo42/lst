@@ -25,6 +25,13 @@ enum class NongraphicMode
   show
 };
 
+enum class TimeMode
+{
+  access,
+  write,
+  creation
+};
+
 struct LongColumn
 {
   using Enum = enum

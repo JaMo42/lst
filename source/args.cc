@@ -40,7 +40,8 @@ static def usage ()
   std::puts ("  -a, --all             Do not ignore entries starting with '.'");
   std::puts ("  -b, --escape          Print C-style escapes for nongraphic characters.");
   std::puts ("  -B, --ignore-backups  Do not list entries ending with '~', '.bak', or '.tmp'");
-  std::puts ("  -c, --directory       Show directory names instead of contents.");
+  std::puts ("  -c                    Use creation time for time.");
+  std::puts ("  -d, --directory       Show directory names instead of contents.");
   std::puts ("      --case-sensitive  Do not ignore case when sorting.");
   std::puts ("  -D, --group-directories-first");
   std::puts ("                        Group directories before files.");
@@ -63,13 +64,21 @@ static def usage ()
   std::puts ("  -R, --recursive       List subdirectories recursively.");
   std::puts ("  -S                    Sort by file size, largest first.");
   std::puts ("  -t                    Sort y time, newest first.");
+  std::puts ("      --time=WORD       Change the default of using modification times;");
+  std::puts ("                          creation time (-c): creation, birth");
+  std::puts ("                          access time (-u): atime, access, use;");
+  std::puts ("                          change time: ctime, write");
+  std::puts ("                        with -l, WORD determines which time is shown;");
+  std::puts ("                        with --sort=time, sort by WORD (newest first)");
+  std::puts ("  -u                    Use time of last access for time.");
   std::puts ("  -U                    Do not sort; list entries in directory order.");
   std::puts ("  -v                    Natural sort of version numbers within file names.");
   std::puts ("      --width=COLS      Set the output width to COLS. Use terminal width if 0.");
   std::puts ("  -X                    Sort alphabetically by entry extension.");
   std::puts ("  -1                    List one file per line.");
   std::puts ("      --english-errors  For Windows, print filesystem related error messages");
-  std::puts ("                        in english instead of the current display language.");
+  std::puts ("                          in english instead of the current display language.");
+  // --format
 }
 
 static inline def handle_short_opt (char flag)
@@ -96,8 +105,8 @@ static inline def handle_short_opt (char flag)
       case 'D': Arguments::group_directories_first = true; break;  // Maybe use 'G' instead
       case 'B': Arguments::ignore_backups = true; break;
       case 'L': Arguments::dereference = true; break;
-      case 'u': Arguments::time_mode = TimeMode::access;
-      case 'c': Arguments::time_mode = TimeMode::creation;
+      case 'u': Arguments::time_mode = TimeMode::access; break;
+      case 'c': Arguments::time_mode = TimeMode::creation; break;
       default:
         std::fprintf (stderr, "%s: invalid option -- %c\n", G_program, flag);
         return false;
@@ -210,11 +219,32 @@ static inline def handle_long_opt (std::string_view elem) -> bool
           return false;
         }
     }
-  else if (opt_name == "format")
+  else if (opt_name == "format"sv)
     {
       if (require_arg ()) return false;
       if (!parse_long_format (arg, Arguments::long_columns))
         return false;
+    }
+  else if (opt_name == "time"sv)
+    {
+      if (require_arg ()) return false;
+      if (arg == "atime"sv || arg == "access"sv || arg == "use"sv)
+        Arguments::time_mode = TimeMode::access;
+      else if (arg == "ctime"sv || arg == "write"sv)
+        Arguments::time_mode = TimeMode::write;
+      else if (arg == "creation"sv || arg == "birth"sv)
+        Arguments::time_mode = TimeMode::creation;
+      else
+        {
+          std::fprintf (stderr, "%s: invalid argument ‘%.*s’ for ‘--%.*s’\n",
+                        G_program,
+                        static_cast<int> (arg.size ()), arg.data (),
+                        static_cast<int> (opt_name.size ()), opt_name.data ());
+          std::fputs ("Valid arguments are:\n", stderr);
+          std::fputs ("  - ‘atime’, ‘access’, ‘use’\n", stderr);
+          std::fputs ("  - ‘ctime’, ‘write’\n", stderr);
+          std::fputs ("  - ‘creation’, ‘birth’\n", stderr);
+        }
     }
   else
     {

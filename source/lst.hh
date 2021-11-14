@@ -65,6 +65,8 @@ def list_dir (const fs::path &path) -> void;
 def get_owner_and_group (const fs::path &path, arena::string &owner_out,
                          arena::string &group_out) -> bool;
 
+def get_file_time (const fs::path &path, std::time_t &out) -> bool;
+
 #ifdef _WIN32
 def get_shortcut_target (const fs::path &path, arena::string &target_out) -> bool;
 #endif // _WIN32
