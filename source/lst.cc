@@ -789,15 +789,21 @@ def print_long (const FileList &files) -> void
   for (let const &f : files)
     {
       // TODO: Only calculate needed widths
-      if (!name_is_last)
+      if (Arguments::long_columns_has.test (LongColumn::name) && !name_is_last)
         name_width = std::max (name_width, file_name_width (f));
-      link_width = std::max (link_width, int_len (f.link_count));
-      owner_width = std::max (owner_width, unicode::display_width (f.owner));
-      group_width = std::max (group_width, unicode::display_width (f.group));
-      if (f.type == FileType::directory)
-        size_width = std::max (size_width, 5);
-      else
-        size_width = std::max (size_width, print_size<true> (f.size));
+      if (Arguments::long_columns_has.test (LongColumn::hard_link_count))
+        link_width = std::max (link_width, int_len (f.link_count));
+      if (Arguments::long_columns_has.test (LongColumn::owner_name))
+        owner_width = std::max (owner_width, unicode::display_width (f.owner));
+      if (Arguments::long_columns_has.test (LongColumn::group_name))
+        group_width = std::max (group_width, unicode::display_width (f.group));
+      if (Arguments::long_columns_has.test (LongColumn::size))
+        {
+          if (f.type == FileType::directory)
+            size_width = std::max (size_width, 5);
+          else
+            size_width = std::max (size_width, print_size<true> (f.size));
+        }
     }
 
   for (let const &f : files)

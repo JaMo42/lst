@@ -84,6 +84,7 @@ extern unsigned width;
 extern bool english_errors;
 extern bool group_directories_first;
 extern std::vector<LongColumn> long_columns;
+extern std::bitset<LongColumn::text + 1> long_columns_has;
 extern bool case_sensitive;
 }
 

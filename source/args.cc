@@ -20,6 +20,7 @@ unsigned width = 0;
 bool english_errors = false;
 bool group_directories_first = false;
 std::vector<LongColumn> long_columns {};
+std::bitset<LongColumn::text + 1> long_columns_has {};
 bool case_sensitive = false;
 }
 
@@ -223,7 +224,6 @@ def parse_args (int argc, const char **argv,
 
 def parse_long_format (std::string_view format, std::vector<LongColumn> &out) -> bool
 {
-  std::bitset<LongColumn::text + 1> has;
   for (std::size_t i = 0; i < format.size (); ++i)
     {
       if (format[i] == '$')
@@ -246,14 +246,14 @@ def parse_long_format (std::string_view format, std::vector<LongColumn> &out) ->
               std::fputs ("  - ‘$n’ File name\n", stderr);
               return false;
             }
-          if (has.test (idx))
+          if (Arguments::long_columns_has.test (idx))
             {
               std::fprintf (stderr, "%s: duplicate format specifier ‘$%c’\n",
                             G_program, format[i]);
               return false;
             }
           out.emplace_back (static_cast<LongColumn::Enum> (idx));
-          has.set (idx);
+          Arguments::long_columns_has.set (idx);
         }
       else
         {
