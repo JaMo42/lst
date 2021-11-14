@@ -102,8 +102,9 @@ def main (const int argc, const char *argv[]) -> int
 
   let need_label = false;
 
-  for (let const &a : args)
+  for (let &a : args)
     {
+      a.make_preferred ();
       if (!fs::exists (a))
         {
           std::printf ("%s: '%s': No such file or directory\n", G_program,
