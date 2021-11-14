@@ -478,7 +478,7 @@ def get_file_time (const fs::path &path, std::time_t &out) -> bool
 def get_owner_and_group (const fs::path &path, arena::string &owner_out,
                          arena::string &group_out) -> bool
 {
-  struct stat sb {0};
+  struct stat sb {};
   struct passwd *pw = nullptr;
   struct group *grp = nullptr;
 
@@ -501,7 +501,7 @@ def get_owner_and_group (const fs::path &path, arena::string &owner_out,
 
 def get_file_time (const fs::path &path, std::time_t &out) -> bool
 {
-  struct stat sb {0};
+  struct stat sb {};
 
   let const stat_func = Arguments::dereference ? stat : lstat;
   if (stat_func (path.string<char> (arena::Allocator<char> {}).c_str (), &sb) == -1)
