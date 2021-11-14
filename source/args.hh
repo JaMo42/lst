@@ -88,6 +88,8 @@ extern std::vector<LongColumn> long_columns;
 extern std::bitset<LongColumn::text + 1> long_columns_has;
 extern bool case_sensitive;
 extern bool ignore_backups;
+extern bool dereference;
+extern TimeMode time_mode;
 }
 
 def parse_args (int argc, const char **argv,

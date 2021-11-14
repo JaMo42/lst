@@ -207,10 +207,14 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag
 }
 
 
-FileInfo::FileInfo (const fs::path &p, const fs::file_status &s)
+FileInfo::FileInfo (const fs::path &p)
   : _path (p.filename ())
 {
-  // TODO: Maybe handle dereferencing here
+  let const status = [](const fs::path &p) {
+    return Arguments::dereference ? fs::status (p) : fs::symlink_status (p);
+  };
+  let const s = status (p);
+
   S_did_complain_about.clear ();
 
   add_frills (unicode::path_to_str (p.filename ()), name);
@@ -256,7 +260,7 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &s)
       if (s.type () == fs::file_type::symlink)
         {
           let const tp = fs::read_symlink (p);
-          target = new FileInfo (tp, fs::status (tp), link_target_tag {});
+          target = new FileInfo (tp, status (tp), link_target_tag {});
         }
 #ifdef _WIN32
       else if (G_has_shortcut_interfaces && ext == S_lnk_ext)
@@ -264,7 +268,7 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &s)
           arena::string target_name;
           get_shortcut_target (p, target_name);
           let const tp = fs::path (target_name);
-          target = new FileInfo (tp, fs::status (tp), link_target_tag {});
+          target = new FileInfo (tp, status (tp), link_target_tag {});
         }
 #endif
     }
@@ -303,7 +307,7 @@ FileInfo::~FileInfo ()
 
 def list_file (const fs::path &path) -> void
 {
-  G_singles.emplace_back (path, fs::status (path));
+  G_singles.emplace_back (path);
 }
 
 
@@ -322,12 +326,17 @@ def list_dir (const fs::path &path) -> void
               || unicode::path_to_str (e.path ().filename ()).back () == '~'))
         continue;
 
-      l->emplace_back (e.path (), e.status ());
+      l->emplace_back (e.path ());
 
       if (Arguments::recursive && e.is_directory ())
         list_dir (e.path ());
     }
 }
+
+//
+// TODO: get_owner_and_group, get_file_time
+// These should share the handle / stat buffer
+//
 
 #ifdef _WIN32
 
@@ -344,12 +353,14 @@ def get_owner_and_group (const fs::path &path, arena::string &owner_out,
   DWORD owner_size = 1, group_size = 1;
   HANDLE file_handle;
 
+  let const flags = (FILE_FLAG_BACKUP_SEMANTICS
+                     | (Arguments::dereference ? 0 : FILE_FLAG_OPEN_REPARSE_POINT));
   file_handle = CreateFileW (path.wstring ().c_str (),
                              GENERIC_READ,
                              FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
                              nullptr,
                              OPEN_EXISTING,
-                             FILE_FLAG_BACKUP_SEMANTICS,
+                             flags,
                              nullptr);
   if (file_handle == INVALID_HANDLE_VALUE)
     {
@@ -424,7 +435,8 @@ def get_owner_and_group (const fs::path &path, arena::string &owner_out,
   struct passwd *pw = nullptr;
   struct group *grp = nullptr;
 
-  if (stat (path.string ().c_str (), &sb) == -1)
+  let const stat_func = Arguments::dereference ? stat : lstat;
+  if (stat_func (path.string<char> (arena::Allocator<char> {}).c_str (), &sb) == -1)
     {
       owner_out.assign ("?");
       group_out.assign ("?");

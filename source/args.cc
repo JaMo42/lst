@@ -25,6 +25,8 @@ std::vector<LongColumn> long_columns {};
 std::bitset<LongColumn::text + 1> long_columns_has {};
 bool case_sensitive = false;
 bool ignore_backups = false;
+bool dereference = false;
+TimeMode time_mode = TimeMode::write;
 }
 
 const char *G_program;
@@ -47,7 +49,10 @@ static def usage ()
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
   std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
   std::puts ("  -l                    Use long listing format.");
-  // -L, --dereference
+  std::puts ("  -L, --dereference     When showing file information about a symbolic");
+  std::puts ("                          link (or reparse points on Windows), show ");
+  std::puts ("                          information for the file the link references");
+  std::puts ("                          rather than for the link itself.");
   std::puts ("  -N, --literal         Do not quote file names.");
   std::puts ("  -q, --hide-control-chars");
   std::puts ("                        Print '?' instead of nongraphic characters.");
@@ -90,6 +95,9 @@ static inline def handle_short_opt (char flag)
       case 'r': Arguments::reverse = true; break;
       case 'D': Arguments::group_directories_first = true; break;  // Maybe use 'G' instead
       case 'B': Arguments::ignore_backups = true; break;
+      case 'L': Arguments::dereference = true; break;
+      case 'u': Arguments::time_mode = TimeMode::access;
+      case 'c': Arguments::time_mode = TimeMode::creation;
       default:
         std::fprintf (stderr, "%s: invalid option -- %c\n", G_program, flag);
         return false;
