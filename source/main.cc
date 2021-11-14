@@ -19,14 +19,6 @@ def main (const int argc, const char *argv[]) -> int
   argv[0] += last_slash;
 #endif
 
-  /*
-  (void)argc; (void)argv;
-  const char *my_argv[] = { "lst", "C:/" };
-  const int my_argc = sizeof (my_argv) / sizeof (my_argv[0]);
-#define argc my_argc
-#define argv my_argv
-  //*/
-
   G_is_a_tty = isatty (fileno (stdout));
 
   std::vector<fs::path> args;
