@@ -18,6 +18,10 @@ else
 	endif
 endif
 
+ifndef $(DEBUG)
+	CXXFLAGS += -O3 -march=native -mtune=native
+endif
+
 SRC = columns.cc unicode.cc args.cc lst.cc main.cc
 OBJ = $(patsubst %.cc,build/%.o,$(SRC))
 OBJ += build/arena_alloc.o

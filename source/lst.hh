@@ -34,7 +34,7 @@ public:
 
   arena::string name {};
   // Target of link or shortcut
-  FileInfo *target {nullptr};
+  FileInfo *target { nullptr };
   arena::string owner { "?" };
   arena::string group { "?" };
   std::uintmax_t size {0};

@@ -19,8 +19,7 @@ def Columns::add (const FileInfo *f) -> void
 
   if (c == M_columns.end ())
     {
-      M_columns.emplace_back ();
-      M_columns.back ().add (f, width, is_quoted);
+      M_columns.emplace_back ().add (f, width, is_quoted);
     }
   else
     {

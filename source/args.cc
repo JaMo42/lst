@@ -42,7 +42,7 @@ static def usage ()
   std::puts ("  -B, --ignore-backups  Do not list entries ending with '~', '.bak', or '.tmp'");
   std::puts ("  -c                    Use creation time for time.");
   std::puts ("  -d, --directory       Show directory names instead of contents.");
-  std::puts ("      --case-sensitive  Do not ignore case when sorting.");
+  std::puts ("      --case-sensitive  Do not ignore case when sorting by name or extension.");
   std::puts ("  -D, --group-directories-first");
   std::puts ("                        Group directories before files.");
   std::puts ("  -F, --no-classify     Do NOT append indicator to entries.");
@@ -57,16 +57,15 @@ static def usage ()
   std::puts ("                          '$s': Size");
   std::puts ("                          '$d': Datetime");
   std::puts ("                          '$n': File name (with -l, also the link target)");
-  std::puts ("                          Anything else is printed literally");
-  std::printf ("                          The default value is '%.*s'\n",
+  std::puts ("                         Anything else is printed literally;");
+  std::printf ("                       the default value is '%.*s'.\n",
                static_cast<int> (default_long_output_format.size ()),
                default_long_output_format.data ());
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
   std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
   std::puts ("  -l                    Use long listing format.");
-  std::puts ("  -L, --dereference     When showing file information about a symbolic");
-  std::puts ("                          link (or reparse points on Windows), show ");
-  std::puts ("                          information for the file the link references");
+  std::puts ("  -L, --dereference     When showing file information about a symbolic link,");
+  std::puts ("                          show information for the file the link references");
   std::puts ("                          rather than for the link itself.");
   std::puts ("  -N, --literal         Do not quote file names.");
   std::puts ("  -q, --hide-control-chars");
@@ -77,13 +76,15 @@ static def usage ()
   std::puts ("  -r, --reverse         Reverse sorting.");
   std::puts ("  -R, --recursive       List subdirectories recursively.");
   std::puts ("  -S                    Sort by file size, largest first.");
+  std::puts ("      --sort=WORD       Sort by WORD instead of name: none (-U), time (-t),");
+  std::puts ("                          size (-S), extension (-X), version (-v).");
   std::puts ("  -t                    Sort y time, newest first.");
   std::puts ("      --time=WORD       Change the default of using modification times;");
   std::puts ("                          creation time (-c): creation, birth");
   std::puts ("                          access time (-u): atime, access, use;");
   std::puts ("                          change time: ctime, write;");
-  std::puts ("                        with -l, WORD determines which time is shown;");
-  std::puts ("                        with --sort=time, sort by WORD (newest first)");
+  std::puts ("                         with -l, WORD determines which time is shown;");
+  std::puts ("                         with --sort=time, sort by WORD (newest first).");
   std::puts ("  -u                    Use time of last access for time.");
   std::puts ("  -U                    Do not sort; list entries in directory order.");
   std::puts ("  -v                    Natural sort of version numbers within file names.");
@@ -329,7 +330,7 @@ def parse_long_format (std::string_view format, std::vector<LongColumn> &out) ->
               std::fputs ("  - ‘$o’ Owner\n", stderr);
               std::fputs ("  - ‘$g’ Group\n", stderr);
               std::fputs ("  - ‘$s’ Size\n", stderr);
-              std::fputs ("  - ‘$d’ Last write time\n", stderr);
+              std::fputs ("  - ‘$d’ Datetime\n", stderr);
               std::fputs ("  - ‘$n’ File name\n", stderr);
               return false;
             }

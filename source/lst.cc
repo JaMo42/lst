@@ -243,7 +243,7 @@ FileInfo::FileInfo (const fs::path &p)
           complain (p);
         }
 
-      size = fs::is_directory (s)  ? 0 : fs::file_size (p, S_ec);
+      size = fs::is_directory (s) ? 0 : fs::file_size (p, S_ec);
       if (S_ec)
         {
           complain (p);
@@ -806,12 +806,12 @@ static def print_size (std::uintmax_t size, unsigned width = 0) -> int
   // TODO: some nicer option to set this
 #if 1
   // Short units
-  static const char *units_1000[] = { "", "k", "M", "G", "T", "P", "E" };
-  static const char *units_1024[] = { "", "K", "M", "G", "T", "P", "E" };
+  static const char *units_1000[] = { "k", "M", "G", "T", "P", "E" };
+  static const char *units_1024[] = { "K", "M", "G", "T", "P", "E" };
 #else
   // Long units
-  static const char *units_1000[] = { "", "KB", "MB", "GB", "TB", "PB", "EB" };
-  static const char *units_1024[] = { "", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
+  static const char *units_1000[] = { "KB", "MB", "GB", "TB", "PB", "EB" };
+  static const char *units_1024[] = { "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
 #endif
 
   if (Arguments::human_readble)
@@ -826,7 +826,7 @@ static def print_size (std::uintmax_t size, unsigned width = 0) -> int
       if (!p)
         goto no_human;
 
-      let unit = (Arguments::human_readble == 1000 ? units_1000 : units_1024)[p];
+      let unit = (Arguments::human_readble == 1000 ? units_1000 : units_1024)[p - 1];
       let unit_len = static_cast<int> (std::strlen (unit));
 
       if constexpr (dry)
@@ -873,8 +873,8 @@ def print_long (const FileList &files) -> void
   char date_buf[date_sz];
   bool invalid_time = false;
 
-  int name_width = 0, link_width = 1, owner_width = 1, group_width = 1,
-      size_width = 1;
+  int name_width = 0, link_width = 0, owner_width = 0, group_width = 0,
+      size_width = 0;
 
   let const name_is_last = Arguments::long_columns.back () == LongColumn::name;
 
