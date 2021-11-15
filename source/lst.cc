@@ -104,7 +104,7 @@ static def escape_nongraphic (char32_t c, arena::string &out)
 }
 
 
-static def add_frills (arena::string &&str, arena::string &out)
+static def add_frills (const arena::string &str, arena::string &out)
 {
   let const loc = std::locale ("");
   let const always_quote = Arguments::quoting == QuoteMode::double_;
@@ -191,7 +191,8 @@ static def add_frills (arena::string &&str, arena::string &out)
 FileInfo::FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag)
   : _path (p.filename ())
 {
-  add_frills (unicode::path_to_str (p.filename ()), name);
+  let const p_str = unicode::path_to_str (p);
+  add_frills (p_str, name);
 
   let const ext = p.extension ();
 #ifdef _WIN32
@@ -201,7 +202,10 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag
     type = FileType::symlink;
   else
 #endif
-  type = file_type (s);
+  if (ext == S_tmp_ext || ext == S_bak_ext || p_str.back () == '~')
+    type = FileType::temporary;
+  else
+    type = file_type (s);
 }
 
 
@@ -222,7 +226,8 @@ FileInfo::FileInfo (const fs::path &p)
 
   S_did_complain_about.clear ();
 
-  add_frills (unicode::path_to_str (p.filename ()), name);
+  let const p_str = unicode::path_to_str (p.filename ());
+  add_frills (p_str, name);
 
   let const ext = p.extension ();
 
@@ -303,7 +308,10 @@ FileInfo::FileInfo (const fs::path &p)
     type = FileType::symlink;
   else
 #endif
-  type = file_type (s);
+  if (ext == S_tmp_ext || ext == S_bak_ext || p_str.back () == '~')
+    type = FileType::temporary;
+  else
+    type = file_type (s);
 }
 
 
@@ -663,19 +671,15 @@ def sort_files (FileList &files) -> void
 
 static def file_color (const FileInfo &f) -> const char *
 {
-  if (f.name.back () == '~'
-      || f._path.extension () == S_bak_ext
-      || f._path.extension () == S_tmp_ext)
-    return "\x1b[90m";
-
   if (f.status_failed)
     return file_name_error_color;
 
   switch (f.type)
     {
       case FileType::directory:  return "\x1b[94m";
-      case FileType::executable: return "\x1b[92m";
       case FileType::symlink:    return "\x1b[96m";
+      case FileType::executable: return "\x1b[92m";
+      case FileType::temporary:  return "\x1b[90m";
       default:                   return "";
     }
 }

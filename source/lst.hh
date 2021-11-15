@@ -13,10 +13,13 @@ enum class FileType
   character,
   fifo,
   socket,
-  executable
+  // These are special cases for regular files
+  executable,  // On Linux: Files with executable permission
+               // On Windows: '.exe', '.bat', and '.cmd' files
+  temporary  // Files ending with '~', '.tmp', or '.bak'
 };
 
-static const char file_type_letters[] = "?-dlbcps-";
+static const char file_type_letters[] = "?-dlbcps--";
 
 struct FileInfo
 {
@@ -40,8 +43,6 @@ public:
   unsigned link_count {0};
   fs::perms perms { fs::perms::none };
   // Used for sorting
-  // Note: currently also used for coloring of '.tmp' and '.bak' files and for
-  // detecting of 'hiberfil.sys' and 'swapfile.sys' on Windows.
   const fs::path _path;
   bool status_failed { false };
 };
