@@ -28,7 +28,7 @@ struct FileInfo
   FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag);
 
 public:
-  FileInfo (const fs::path &p);
+  FileInfo (const fs::path &p, const fs::file_status &in_s);
 
   ~FileInfo ();
 

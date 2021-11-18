@@ -25,6 +25,14 @@ constexpr const char *file_name_error_color = "\x1b[33m";
 // Use octal escape sequences for unprintable ascii characters
 constexpr bool ascii_escape_octal = false;
 
+// Units for --si
+constexpr const char *units_1000[] = { "k", "M", "G", "T", "P", "E" };
+//constexpr const char *units_1000[] = { "KB", "MB", "GB", "TB", "PB", "EB" };
+
+// Units for -h
+constexpr const char *units_1024[] = { "K", "M", "G", "T", "P", "E" };
+//constexpr const char *units_1024[] = { "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
+
 //////////////////////////////////////////////////////////////////////////
 // Behaviour
 

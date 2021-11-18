@@ -91,7 +91,7 @@ extern unsigned human_readble;
 extern unsigned width;
 extern bool english_errors;
 extern bool group_directories_first;
-extern std::vector<LongColumn> long_columns;
+extern arena::vector<LongColumn> long_columns;
 extern std::bitset<LongColumn::text + 1> long_columns_has;
 extern bool case_sensitive;
 extern bool ignore_backups;
@@ -100,6 +100,6 @@ extern TimeMode time_mode;
 }
 
 def parse_args (int argc, const char **argv,
-                std::vector<fs::path> &args) -> bool;
+                arena::vector<fs::path> &args) -> bool;
 
-def parse_long_format (std::string_view format, std::vector<LongColumn> &out) -> bool;
+def parse_long_format (std::string_view format, arena::vector<LongColumn> &out) -> bool;

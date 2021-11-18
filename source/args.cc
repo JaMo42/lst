@@ -21,7 +21,7 @@ unsigned human_readble = 0;
 unsigned width = 0;
 bool english_errors = false;
 bool group_directories_first = false;
-std::vector<LongColumn> long_columns {};
+arena::vector<LongColumn> long_columns {};
 std::bitset<LongColumn::text + 1> long_columns_has {};
 bool case_sensitive = false;
 bool ignore_backups = false;
@@ -88,7 +88,7 @@ static def usage ()
   std::puts ("  -u                    Use time of last access for time.");
   std::puts ("  -U                    Do not sort; list entries in directory order.");
   std::puts ("  -v                    Natural sort of version numbers within file names.");
-  std::puts ("      --width=COLS      Set the output width to COLS. Use terminal width if 0.");
+  std::puts ("      --width=COLS      Set the output width for multi column output to COLS.");
   std::puts ("  -X                    Sort alphabetically by entry extension.");
   std::puts ("  -1                    List one file per line.");
   std::puts ("      --english-errors  For Windows, print filesystem related error messages");
@@ -272,7 +272,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
 }
 
 def parse_args (int argc, const char **argv,
-                std::vector<fs::path> &args) -> bool
+                arena::vector<fs::path> &args) -> bool
 {
   std::string_view elem;
   int i;
@@ -310,7 +310,7 @@ def parse_args (int argc, const char **argv,
   return true;
 }
 
-def parse_long_format (std::string_view format, std::vector<LongColumn> &out) -> bool
+def parse_long_format (std::string_view format, arena::vector<LongColumn> &out) -> bool
 {
   for (std::size_t i = 0; i < format.size (); ++i)
     {

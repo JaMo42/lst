@@ -116,10 +116,11 @@ def padding_offset (const arena::string &str) -> int
 
 def path_to_str (const fs::path &p) -> arena::string
 {
-  // On Windows, std::filesystem::path::string raises an encoding error if the
-  // path contains non-ascii characters.
+  // On Windows, std::filesystem::path::string<char> raises an encoding error
+  // if the path contains non-ascii characters.
 #ifdef _WIN32
-  return arena::string (reinterpret_cast<const char *> (p.u8string ().c_str ()));
+  let const temp = p.string<char8_t> (arena::Allocator<char8_t> {});
+  return arena::string (reinterpret_cast<const char *> (temp.c_str ()));
 #else
   return p.string<char> (arena::Allocator<char> {});
 #endif

@@ -21,7 +21,7 @@ def main (const int argc, const char *argv[]) -> int
 
   G_is_a_tty = isatty (fileno (stdout));
 
-  std::vector<fs::path> args;
+  arena::vector<fs::path> args;
   args.reserve (argc);
   if (!parse_args (argc, argv, args))
     {
@@ -63,7 +63,7 @@ def main (const int argc, const char *argv[]) -> int
             }
 
           if (FAILED (G_sl->QueryInterface(IID_IPersistFile,
-                                          reinterpret_cast<void**> (&G_pf))))
+                                           reinterpret_cast<void **> (&G_pf))))
             {
               G_has_shortcut_interfaces = false;
               std::fprintf (stderr, "%s: Failed to get IPersistFile interface\n",

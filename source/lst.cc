@@ -118,9 +118,9 @@ static def add_frills (const arena::string &str, arena::string &out)
 
   // Source: https://www.opencoverage.net/coreutils/index_html/source_213.html
   // Quote the name if it starts with any of there
-  let static constexpr quote_if_first = "#~"sv;
+  let constexpr quote_if_first = "#~"sv;
   // Quote the name if it contains any of these
-  let static constexpr quote_if_anywhere = " !$&()*;<=>[^`|"sv;
+  let constexpr quote_if_anywhere = " !$&()*;<=>[^`|"sv;
 
   // Pre-process for quotation marks since we need to know ahead of time if we
   // weill need to escape them in the second loop. We do not need to care about
@@ -134,9 +134,6 @@ static def add_frills (const arena::string &str, arena::string &out)
       else if (quote_if_anywhere.find (c) != std::string_view::npos)
         need_quoting = true;
     }
-  // Numbner sign only requires outing if it is the first character (technically
-  // the first non-whitespace character but if there is whitespace before this
-  // we already quote anyways)
   if (!need_quoting && quote_if_first.find (str[0]) != std::string_view::npos)
     need_quoting = true;
   // These may be special if isolated (line 525 in the above mention source)
@@ -209,7 +206,7 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag
 }
 
 
-FileInfo::FileInfo (const fs::path &p)
+FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
   : _path (p.filename ())
 {
   let const status = [](const fs::path &p) {
@@ -226,10 +223,10 @@ FileInfo::FileInfo (const fs::path &p)
 
   S_did_complain_about.clear ();
 
-  let const p_str = unicode::path_to_str (p.filename ());
+  let p_str = unicode::path_to_str (p.filename ());
   add_frills (p_str, name);
 
-  let const ext = p.extension ();
+  let ext = p.extension ();
 
   if (Arguments::long_listing)
     {
@@ -272,8 +269,11 @@ FileInfo::FileInfo (const fs::path &p)
 
       if (s.type () == fs::file_type::symlink)
         {
-          let const tp = fs::read_symlink (p);
-          target = new FileInfo (tp, status (tp), link_target_tag {});
+          let const real_tp = fs::read_symlink (p);
+          let const tp = (real_tp.is_absolute ()
+                          ? real_tp
+                          : fs::absolute (p.parent_path() / real_tp));
+          target = new FileInfo (real_tp, status (tp), link_target_tag {});
         }
 #ifdef _WIN32
       else if (G_has_shortcut_interfaces && ext == S_lnk_ext)
@@ -301,6 +301,17 @@ FileInfo::FileInfo (const fs::path &p)
         }
     }
 
+  // Get the correct name for name dependant file types
+  if (Arguments::dereference && in_s.type () == fs::file_type::symlink)
+    {
+      let const real_tp = fs::read_symlink (p);
+      let const tp = (real_tp.is_absolute ()
+                      ? real_tp
+                      : fs::absolute (p.parent_path() / real_tp));
+      ext = tp.extension ();
+      p_str = unicode::path_to_str (tp);
+    }
+
 #ifdef _WIN32
   if (ext == S_exe_ext || ext == S_bat_ext || ext == S_cmd_ext)
     type = FileType::executable;
@@ -323,7 +334,7 @@ FileInfo::~FileInfo ()
 
 def list_file (const fs::path &path) -> void
 {
-  G_singles.emplace_back (path);
+  G_singles.emplace_back (path, fs::symlink_status (path));
 }
 
 
@@ -342,7 +353,7 @@ def list_dir (const fs::path &path) -> void
               || unicode::path_to_str (e.path ().filename ()).back () == '~'))
         continue;
 
-      l->emplace_back (e.path ());
+      l->emplace_back (e.path (), e.symlink_status ());
 
       if (Arguments::recursive && e.is_directory ())
         list_dir (e.path ());
@@ -679,6 +690,7 @@ static def file_color (const FileInfo &f) -> const char *
       case FileType::directory:  return "\x1b[94m";
       case FileType::symlink:    return "\x1b[96m";
       case FileType::executable: return "\x1b[92m";
+      case FileType::unknown:    return file_name_error_color;
       case FileType::temporary:  return "\x1b[90m";
       default:                   return "";
     }
@@ -803,28 +815,15 @@ static def int_len (std::uintmax_t n) -> int
 template <bool dry = false>
 static def print_size (std::uintmax_t size, unsigned width = 0) -> int
 {
-  // TODO: some nicer option to set this
-#if 1
-  // Short units
-  static const char *units_1000[] = { "k", "M", "G", "T", "P", "E" };
-  static const char *units_1024[] = { "K", "M", "G", "T", "P", "E" };
-#else
-  // Long units
-  static const char *units_1000[] = { "KB", "MB", "GB", "TB", "PB", "EB" };
-  static const char *units_1024[] = { "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
-#endif
-
-  if (Arguments::human_readble)
+  if (Arguments::human_readble && size >= Arguments::human_readble)
     {
       let fsize = double (size);
       let p = 0;
-      while (fsize > Arguments::human_readble)
+      while (fsize >= Arguments::human_readble)
         {
           ++p;
           fsize /= Arguments::human_readble;
         }
-      if (!p)
-        goto no_human;
 
       let unit = (Arguments::human_readble == 1000 ? units_1000 : units_1024)[p - 1];
       let unit_len = static_cast<int> (std::strlen (unit));
@@ -842,7 +841,6 @@ static def print_size (std::uintmax_t size, unsigned width = 0) -> int
     }
   else
     {
-no_human:
       if constexpr (dry)
         return std::snprintf (nullptr, 0, "%ju", size);
       else
@@ -930,14 +928,14 @@ def print_long (const FileList &files) -> void
               case LongColumn::oct_perms:
                 {
                   let static constexpr owner_mask = (fs::perms::owner_read
-                                                    | fs::perms::owner_write
-                                                    | fs::perms::owner_exec);
+                                                     | fs::perms::owner_write
+                                                     | fs::perms::owner_exec);
                   let static constexpr group_mask = (fs::perms::group_read
-                                                    | fs::perms::group_write
-                                                    | fs::perms::group_exec);
+                                                     | fs::perms::group_write
+                                                     | fs::perms::group_exec);
                   let static constexpr others_mask = (fs::perms::others_read
-                                                    | fs::perms::others_write
-                                                    | fs::perms::others_exec);
+                                                      | fs::perms::others_write
+                                                      | fs::perms::others_exec);
                   std::printf ("%c%c%c",
                                '0' + (static_cast<int> (f.perms & owner_mask) >> 6),
                                '0' + (static_cast<int> (f.perms & group_mask) >> 3),
