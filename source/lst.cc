@@ -855,6 +855,29 @@ static def print_size (std::uintmax_t size, unsigned width = 0) -> int
 }
 
 
+static def strftime_width (const std::tm *time) -> int
+{
+  static arena::string S_buf;
+  static bool first_call = true;
+  if (first_call)
+    {
+      S_buf.resize (64);
+      first_call = false;
+    }
+
+  let r = std::strftime (S_buf.data (), S_buf.size () - 1, Arguments::time_format, time);
+
+  while (!r)
+    {
+      S_buf.resize (S_buf.size () << 1);
+      r = std::strftime (S_buf.data (), S_buf.size () - 1, Arguments::time_format, time);
+    }
+
+  S_buf.resize (r);
+  return unicode::display_width (S_buf);
+}
+
+
 def print_single_column (const FileList &files) -> void
 {
   let has_quoted = false;
@@ -882,12 +905,12 @@ def print_single_column (const FileList &files) -> void
 def print_long (const FileList &files) -> void
 {
   arena::string size_buf;
-  const int date_sz = 14;
-  char date_buf[date_sz];
+  //const int date_sz = 14;
+  //char date_buf[date_sz];
   bool invalid_time = false;
 
   int name_width = 0, link_width = 0, owner_width = 0, group_width = 0,
-      size_width = 0;
+      size_width = 0, time_width = Arguments::time_format ? 0 : 13;
 
   let const name_is_last = Arguments::long_columns.back () == LongColumn::name;
 
@@ -909,7 +932,17 @@ def print_long (const FileList &files) -> void
           else
             size_width = std::max (size_width, print_size<true> (f.size));
         }
+      if (Arguments::time_format && !f.status_failed && f.time)
+        {
+          let const t = std::localtime (&f.time);
+          time_width = std::max (time_width, strftime_width (t));
+        }
     }
+
+  let const date_sz = time_width + 1;
+  static arena::string date_buf_s;
+  date_buf_s.resize (date_sz);
+  let const date_buf = date_buf_s.data ();
 
   for (let const &f : files)
     {
@@ -1013,17 +1046,24 @@ def print_long (const FileList &files) -> void
                 {
                   if (invalid_time || !f.time)
                     {
-                      std::printf ("            %s?\x1b[0m", error_color);
+                      std::printf ("%s%*c\x1b[0m", error_color, time_width, '?');
                       invalid_time = false;
                     }
                   else
                     {
                       std::memset (date_buf, 0, date_sz);
                       let const t = std::localtime (&f.time);
-                      if (difftime (f.time, G_six_months_ago) < 0)
-                        std::strftime (date_buf, date_sz, "%d. %b  %Y", t);
+                      if (Arguments::time_format)
+                        {
+                          std::strftime (date_buf, date_sz, Arguments::time_format, t);
+                        }
                       else
-                        std::strftime (date_buf, date_sz, "%d. %b %H:%M", t);
+                        {
+                          if (difftime (f.time, G_six_months_ago) < 0)
+                            std::strftime (date_buf, date_sz, "%d. %b  %Y", t);
+                          else
+                            std::strftime (date_buf, date_sz, "%d. %b %H:%M", t);
+                      }
                       std::fputs (date_buf, stdout);
                     }
                 }

@@ -27,6 +27,7 @@ bool case_sensitive = false;
 bool ignore_backups = false;
 bool dereference = false;
 TimeMode time_mode = TimeMode::write;
+const char *time_format = nullptr;
 }
 
 const char *G_program;
@@ -85,6 +86,8 @@ static def usage ()
   std::puts ("                          change time: ctime, write;");
   std::puts ("                         with -l, WORD determines which time is shown;");
   std::puts ("                         with --sort=time, sort by WORD (newest first).");
+  std::puts ("      --time-format=FORMAT");
+  std::puts ("                        Specify custom time/date format; man strftime.");
   std::puts ("  -u                    Use time of last access for time.");
   std::puts ("  -U                    Do not sort; list entries in directory order.");
   std::puts ("  -v                    Natural sort of version numbers within file names.");
@@ -260,6 +263,11 @@ static inline def handle_long_opt (std::string_view elem) -> bool
           std::fputs ("  - ‘ctime’, ‘write’\n", stderr);
           std::fputs ("  - ‘creation’, ‘birth’\n", stderr);
         }
+    }
+  else if (opt_name == "time-format"sv)
+    {
+      if (require_arg ()) return false;
+      Arguments::time_format = arg.data ();
     }
   else
     {

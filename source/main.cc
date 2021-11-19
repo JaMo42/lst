@@ -31,17 +31,20 @@ def main (const int argc, const char *argv[]) -> int
 
   if (Arguments::long_listing)
     {
-      // Get time 6 months ago to choose between time formats
-      std::time_t now = std::time (NULL);
-      std::tm *six_months_ago = localtime (&now);
-      if (six_months_ago->tm_mon < 6)
+      if (!Arguments::time_format)
         {
-          six_months_ago->tm_mon = 11 - six_months_ago->tm_mon;
-          --six_months_ago->tm_year;
+          // Get time 6 months ago to choose between time formats
+          std::time_t now = std::time (NULL);
+          std::tm *six_months_ago = localtime (&now);
+          if (six_months_ago->tm_mon < 6)
+            {
+              six_months_ago->tm_mon = 11 - six_months_ago->tm_mon;
+              --six_months_ago->tm_year;
+            }
+          else
+            six_months_ago->tm_mon -= 6;
+          G_six_months_ago = mktime (six_months_ago);
         }
-      else
-        six_months_ago->tm_mon -= 6;
-      G_six_months_ago = mktime (six_months_ago);
 
 #ifdef _WIN32
       // Get interfaces to resolve shortcut targets
