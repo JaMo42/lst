@@ -675,7 +675,8 @@ def sort_files (FileList &files) -> void
 
   if (Arguments::group_directories_first)
     files.sort ([](const FileInfo &a, const FileInfo &b) {
-      return (a.type == FileType::directory) > (b.type == FileType::directory);
+      return ((a.type == FileType::directory)
+              > (b.type == FileType::directory)) ^ Arguments::reverse;
     });
 }
 
@@ -856,8 +857,22 @@ static def print_size (std::uintmax_t size, unsigned width = 0) -> int
 
 def print_single_column (const FileList &files) -> void
 {
+  let has_quoted = false;
   for (let const &f : files)
     {
+      if ((Arguments::quoting == QuoteMode::default_)
+           && (f.name.front () == '\'' || f.name.front () == '"')
+           && (f.name.front () == f.name.back ()))
+        {
+          has_quoted = true;
+          break;
+        }
+    }
+
+  for (let const &f : files)
+    {
+      if (has_quoted && !(f.name.front () == '\'' || f.name.front () == '"'))
+        std::putchar (' ');
       print_file_name (f);
       std::putchar ('\n');
     }

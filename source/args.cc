@@ -42,7 +42,6 @@ static def usage ()
   std::puts ("  -B, --ignore-backups  Do not list entries ending with '~', '.bak', or '.tmp'");
   std::puts ("  -c                    Use creation time for time.");
   std::puts ("  -d, --directory       Show directory names instead of contents.");
-  std::puts ("      --case-sensitive  Do not ignore case when sorting by name or extension.");
   std::puts ("  -D, --group-directories-first");
   std::puts ("                        Group directories before files.");
   std::puts ("  -F, --no-classify     Do NOT append indicator to entries.");
@@ -58,7 +57,7 @@ static def usage ()
   std::puts ("                          '$d': Datetime");
   std::puts ("                          '$n': File name (with -l, also the link target)");
   std::puts ("                         Anything else is printed literally;");
-  std::printf ("                       the default value is '%.*s'.\n",
+  std::printf ("                         the default value is '%.*s'.\n",
                static_cast<int> (default_long_output_format.size ()),
                default_long_output_format.data ());
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
@@ -78,6 +77,7 @@ static def usage ()
   std::puts ("  -S                    Sort by file size, largest first.");
   std::puts ("      --sort=WORD       Sort by WORD instead of name: none (-U), time (-t),");
   std::puts ("                          size (-S), extension (-X), version (-v).");
+  std::puts ("      --case-sensitive  Do not ignore case when sorting by name or extension.");
   std::puts ("  -t                    Sort y time, newest first.");
   std::puts ("      --time=WORD       Change the default of using modification times;");
   std::puts ("                          creation time (-c): creation, birth");

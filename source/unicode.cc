@@ -78,16 +78,16 @@ def display_width (char32_t ch) -> int
     return 0;
   return (1
           + (ch >= 0x1100
-              && (ch <= 0x115f || ch == 0x2329 || ch == 0x232a
-                  || (ch >= 0x2e80 && ch <= 0xa4cf && ch != 0x303f)
-                  || (ch >= 0xac00 && ch <= 0xd7a3)
-                  || (ch >= 0xf900 && ch <= 0xfaff)
-                  || (ch >= 0xfe10 && ch <= 0xfe19)
-                  || (ch >= 0xfe30 && ch <= 0xfe6f)
-                  || (ch >= 0xff00 && ch <= 0xff60)
-                  || (ch >= 0xffe0 && ch <= 0xffe6)
-                  || (ch >= 0x20000 && ch <= 0x2fffd)
-                  || (ch >= 0x30000 && ch <= 0x3fffd))));
+             && (ch <= 0x115f || ch == 0x2329 || ch == 0x232a
+                 || (ch >= 0x2e80 && ch <= 0xa4cf && ch != 0x303f)
+                 || (ch >= 0xac00 && ch <= 0xd7a3)
+                 || (ch >= 0xf900 && ch <= 0xfaff)
+                 || (ch >= 0xfe10 && ch <= 0xfe19)
+                 || (ch >= 0xfe30 && ch <= 0xfe6f)
+                 || (ch >= 0xff00 && ch <= 0xff60)
+                 || (ch >= 0xffe0 && ch <= 0xffe6)
+                 || (ch >= 0x20000 && ch <= 0x2fffd)
+                 || (ch >= 0x30000 && ch <= 0x3fffd))));
 }
 
 def display_width (const arena::string &str) -> int
