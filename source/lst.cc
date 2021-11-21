@@ -601,6 +601,7 @@ case_insensitive_compare (const fs::path &a, const fs::path &b)
 
   for (std::size_t i = 0; i < l; ++i)
     {
+      // See add_frills regarding non-ascii values
       c1 = static_cast<char32_t> (astr[i]) < 0x80 ? std::tolower (astr[i]) : astr[i];
       c2 = static_cast<char32_t> (bstr[i]) < 0x80 ? std::tolower (bstr[i]) : bstr[i];
 
@@ -617,46 +618,46 @@ def sort_files (FileList &files) -> void
 {
   static std::function<bool (const FileInfo &, const FileInfo &)> sort = nullptr;
 
-  if (Arguments::sort_mode == SortMode::none)
-    return;
+  let compare_path = [](const fs::path &a, const fs::path &b) -> int {
+    if (Arguments::case_sensitive)
+      return a.compare (b);
+    else
+      return case_insensitive_compare (a, b);
+  };
 
-  #define SORT_FUNC [](const FileInfo &a, const FileInfo &b)
+  #define SORT_FUNC [&compare_path](const FileInfo &a, const FileInfo &b)
   if (!sort)
     {
       switch (Arguments::sort_mode)
         {
           case SortMode::name:
-            if (Arguments::case_sensitive)
-              sort = SORT_FUNC {
-                return ((a._path < b._path) ^ Arguments::reverse);
-              };
-            else
-              sort = SORT_FUNC {
-                return (!case_insensitive_compare (a._path, b._path)
-                        ^ Arguments::reverse);
-              };
+            sort = SORT_FUNC {
+              return (compare_path (a._path, b._path) < 0) ^ Arguments::reverse;
+            };
             break;
           case SortMode::extension:
-            if (Arguments::case_sensitive)
-              sort = SORT_FUNC {
-                return ((a._path.extension () < b._path.extension ())
-                        ^ Arguments::reverse);
-              };
-            else
-              sort = SORT_FUNC {
-                return (!case_insensitive_compare (a._path.extension (),
-                                                   b._path.extension ())
-                        ^ Arguments::reverse);
-              };
+            sort = SORT_FUNC {
+              let const c = compare_path (a._path.extension (),
+                                          b._path.extension ());
+              // If both extensions are equal, compare the entire filename
+              return (((c ? c : compare_path (a._path, b._path)) < 0)
+                      ^ Arguments::reverse);
+            };
             break;
           case SortMode::size:
             sort = SORT_FUNC {
-              return (a.size > b.size) ^ Arguments::reverse;
+              // If both sizes are equal, compare the filename
+              return ((a.size == b.size
+                       ? compare_path (a._path, b._path) < 0
+                       : a.size > b.size) ^ Arguments::reverse);
             };
             break;
           case SortMode::time:
             sort = SORT_FUNC {
-              return (difftime (a.time, b.time) > 0) ^ Arguments::reverse;
+              let const d = difftime (a.time, b.time);
+              // If both times are equal, compare the file name
+              return ((d ? d > 0 : compare_path (a._path, b._path) < 0)
+                      ^ Arguments::reverse);
             };
             break;
           case SortMode::version:
@@ -671,7 +672,8 @@ def sort_files (FileList &files) -> void
     }
   #undef SORT_FUNC
 
-  files.sort (sort);
+  if (Arguments::sort_mode != SortMode::none)
+    files.sort (sort);
 
   if (Arguments::group_directories_first)
     files.sort ([](const FileInfo &a, const FileInfo &b) {

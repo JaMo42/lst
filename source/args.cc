@@ -20,7 +20,7 @@ NongraphicMode nongraphic = NongraphicMode::escape;
 unsigned human_readble = 0;
 unsigned width = 0;
 bool english_errors = false;
-bool group_directories_first = false;
+bool group_directories_first = true;
 arena::vector<LongColumn> long_columns {};
 std::bitset<LongColumn::text + 1> long_columns_has {};
 bool case_sensitive = false;
@@ -43,9 +43,8 @@ static def usage ()
   std::puts ("  -B, --ignore-backups  Do not list entries ending with '~', '.bak', or '.tmp'");
   std::puts ("  -c                    Use creation time for time.");
   std::puts ("  -d, --directory       Show directory names instead of contents.");
-  std::puts ("  -D, --group-directories-first");
-  std::puts ("                        Group directories before files.");
-  std::puts ("  -F, --no-classify     Do NOT append indicator to entries.");
+  std::puts ("  -D,                   Do not group directories before files.");
+  std::puts ("  -F, --no-classify     Do not append indicator to entries.");
   std::puts ("      --file-type       Do not append '*' indicator.");
   std::puts ("      --format=FORMAT   Format string for long listing format");
   std::puts ("                          '$t': Type indicator");
@@ -119,7 +118,7 @@ static inline def handle_short_opt (char flag)
       case 'h': Arguments::human_readble = 1024; break;
       case 'd': Arguments::immediate_dirs = true; break;
       case 'r': Arguments::reverse = true; break;
-      case 'D': Arguments::group_directories_first = true; break;  // Maybe use 'G' instead
+      case 'D': Arguments::group_directories_first = false; break;  // Maybe use 'G' instead
       case 'B': Arguments::ignore_backups = true; break;
       case 'L': Arguments::dereference = true; break;
       case 'u': Arguments::time_mode = TimeMode::access; break;
@@ -170,7 +169,6 @@ static inline def handle_long_opt (std::string_view elem) -> bool
   else if (opt_name ==               "directory"sv) immediate_dirs = true;
   else if (opt_name ==                 "reverse"sv) reverse = true;
   else if (opt_name ==          "english-errors"sv) english_errors = true;
-  else if (opt_name == "group-directories-first"sv) group_directories_first = true;
   else if (opt_name ==          "case-sensitive"sv) case_sensitive = true;
   else if (opt_name ==          "ignore-backups"sv) ignore_backups = true;
   else if (opt_name ==             "dereference"sv) dereference = true;
