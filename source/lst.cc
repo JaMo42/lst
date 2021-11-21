@@ -662,6 +662,7 @@ def sort_files (FileList &files) -> void
             break;
           case SortMode::version:
             sort = SORT_FUNC {
+              (void)compare_path;  // Suppress unused capture warning
               // TODO
               (void)a; (void)b;
               return true;
