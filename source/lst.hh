@@ -3,22 +3,6 @@
 #include "unicode.hh"
 #include "options.hh"
 
-enum class FileType
-{
-  unknown,
-  regular,
-  directory,
-  symlink,
-  block,
-  character,
-  fifo,
-  socket,
-  // These are special cases for regular files
-  executable,  // On Linux: Files with executable permission
-               // On Windows: '.exe', '.bat', and '.cmd' files
-  temporary  // Files ending with '~', '.tmp', or '.bak'
-};
-
 static const char file_type_letters[] = "?-dlbcps--";
 
 struct FileInfo
@@ -39,12 +23,14 @@ public:
   arena::string group { "?" };
   std::uintmax_t size {0};
   std::time_t time {0};
-  FileType type { FileType::unknown };
+  fs::file_type type { fs::file_type::unknown };
   unsigned link_count {0};
   fs::perms perms { fs::perms::none };
   // Used for sorting
   const fs::path _path;
   bool status_failed { false };
+  bool is_executable { false };
+  bool is_temporary { false };
 };
 
 using FileList = std::list<FileInfo>;
@@ -72,8 +58,6 @@ def get_file_time (const fs::path &path, std::time_t &out) -> bool;
 #ifdef _WIN32
 def get_shortcut_target (const fs::path &path, arena::string &target_out) -> bool;
 #endif // _WIN32
-
-def file_type (const fs::file_status &s) -> FileType;
 
 def file_time_to_time_t (fs::file_time_type ft) -> std::time_t;
 

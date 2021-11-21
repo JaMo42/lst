@@ -192,17 +192,27 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag
   add_frills (p_str, name);
 
   let const ext = p.extension ();
+
+  if (ext == S_tmp_ext || ext == S_bak_ext || p_str.back () == '~')
+    is_temporary = true;
+
 #ifdef _WIN32
   if (ext == S_exe_ext || ext == S_bat_ext || ext == S_cmd_ext)
-    type = FileType::executable;
-  else if (ext == S_lnk_ext)
-    type = FileType::symlink;
+    is_executable = true;
+#else
+  let const p = s.permissions ();
+  if ((p & fs::perms::owner_exec) != fs::perms::none
+      || (p & fs::perms::group_exec) != fs::perms::none
+      || (p & fs::perms::others_exec) != fs::perms::none)
+    is_executable = true;
+#endif
+
+#ifdef _WIN32
+  if (target || ext == S_lnk_ext)
+    type = fs::file_type::symlink;
   else
 #endif
-  if (ext == S_tmp_ext || ext == S_bak_ext || p_str.back () == '~')
-    type = FileType::temporary;
-  else
-    type = file_type (s);
+  type = s.type ();
 }
 
 
@@ -312,17 +322,26 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
       p_str = unicode::path_to_str (tp);
     }
 
+  if (ext == S_tmp_ext || ext == S_bak_ext || p_str.back () == '~')
+    is_temporary = true;
+
 #ifdef _WIN32
   if (ext == S_exe_ext || ext == S_bat_ext || ext == S_cmd_ext)
-    type = FileType::executable;
-  else if (target || ext == S_lnk_ext)
-    type = FileType::symlink;
+    is_executable = true;
+#else
+  let const p = s.permissions ();
+  if ((p & fs::perms::owner_exec) != fs::perms::none
+      || (p & fs::perms::group_exec) != fs::perms::none
+      || (p & fs::perms::others_exec) != fs::perms::none)
+    is_executable = true;
+#endif
+
+#ifdef _WIN32
+  if (target || ext == S_lnk_ext)
+    type = fs::file_type::symlink;
   else
 #endif
-  if (ext == S_tmp_ext || ext == S_bak_ext || p_str.back () == '~')
-    type = FileType::temporary;
-  else
-    type = file_type (s);
+  type = s.type ();
 }
 
 
@@ -549,38 +568,6 @@ def get_file_time (const fs::path &path, std::time_t &out) -> bool
 
 #endif // _WIN32
 
-def file_type (const fs::file_status &s) -> FileType
-{
-  switch (s.type ())
-    {
-      case fs::file_type::regular:
-        {
-#ifndef _WIN32
-          let const p = s.permissions ();
-          if ((p & fs::perms::owner_exec) != fs::perms::none
-              || (p & fs::perms::group_exec) != fs::perms::none
-              || (p & fs::perms::others_exec) != fs::perms::none)
-            return FileType::executable;
-#endif
-          return FileType::regular;
-        }
-      case fs::file_type::directory:
-        return FileType::directory;
-      case fs::file_type::symlink:
-        return FileType::symlink;
-      case fs::file_type::block:
-        return FileType::block;
-      case fs::file_type::character:
-        return FileType::character;
-      case fs::file_type::fifo:
-        return FileType::fifo;
-      case fs::file_type::socket:
-        return FileType::socket;
-      default:
-        return FileType::unknown;
-    }
-}
-
 
 def file_time_to_time_t (fs::file_time_type ft) -> std::time_t
 {
@@ -649,7 +636,8 @@ def sort_files (FileList &files) -> void
               // If both sizes are equal, compare the filename
               return ((a.size == b.size
                        ? compare_path (a._path, b._path) < 0
-                       : a.size > b.size) ^ Arguments::reverse);
+                       : a.size > b.size)
+                      ^ Arguments::reverse);
             };
             break;
           case SortMode::time:
@@ -678,8 +666,9 @@ def sort_files (FileList &files) -> void
 
   if (Arguments::group_directories_first)
     files.sort ([](const FileInfo &a, const FileInfo &b) {
-      return ((a.type == FileType::directory)
-              > (b.type == FileType::directory)) ^ Arguments::reverse;
+      return (((a.type == fs::file_type::directory)
+               > (b.type == fs::file_type::directory))
+              ^ Arguments::reverse);
     });
 }
 
@@ -688,14 +677,16 @@ static def file_color (const FileInfo &f) -> const char *
 {
   if (f.status_failed)
     return file_name_error_color;
+  else if (f.is_executable)
+    return "\x1b[92m";
+  else if (f.is_temporary)
+    return "\x1b[90m";
 
   switch (f.type)
     {
-      case FileType::directory:  return "\x1b[94m";
-      case FileType::symlink:    return "\x1b[96m";
-      case FileType::executable: return "\x1b[92m";
-      case FileType::unknown:    return file_name_error_color;
-      case FileType::temporary:  return "\x1b[90m";
+      case fs::file_type::directory:  return "\x1b[94m";
+      case fs::file_type::symlink:    return "\x1b[96m";
+      case fs::file_type::unknown:    return file_name_error_color;
       default:                   return "";
     }
 }
@@ -703,13 +694,15 @@ static def file_color (const FileInfo &f) -> const char *
 
 def file_indicator (const FileInfo &f) -> char
 {
+  if (Arguments::file_type && f.is_executable)
+    return '*';
+
   switch (f.type)
     {
-      case FileType::directory:  return '/';
-      case FileType::symlink:    return '@';
-      case FileType::fifo:       return '|';
-      case FileType::socket:     return '=';
-      case FileType::executable: return Arguments::file_type ? 0 : '*';
+      case fs::file_type::directory:  return '/';
+      case fs::file_type::symlink:    return '@';
+      case fs::file_type::fifo:       return '|';
+      case fs::file_type::socket:     return '=';
       default:                   return 0;
     }
 }
@@ -717,13 +710,15 @@ def file_indicator (const FileInfo &f) -> char
 
 static def file_indicator_color (const FileInfo &f) -> const char *
 {
+  if (f.is_executable)
+    return "\x1b[32m";
+
   switch (f.type)
     {
-      case FileType::directory:  return "\x1b[34m";
-      case FileType::symlink:    return "\x1b[36m";
-      case FileType::fifo:       return "\x1b[90m";
-      case FileType::socket:     return "\x1b[90m";
-      case FileType::executable: return "\x1b[32m";
+      case fs::file_type::directory:  return "\x1b[34m";
+      case fs::file_type::symlink:    return "\x1b[36m";
+      case fs::file_type::fifo:       return "\x1b[90m";
+      case fs::file_type::socket:     return "\x1b[90m";
       default:                   return nullptr;
     }
 }
@@ -930,7 +925,7 @@ def print_long (const FileList &files) -> void
         group_width = std::max (group_width, unicode::display_width (f.group));
       if (Arguments::long_columns_has.test (LongColumn::size))
         {
-          if (f.type == FileType::directory)
+          if (f.type == fs::file_type::directory)
             size_width = std::max (size_width, 5);
           else
             size_width = std::max (size_width, print_size<true> (f.size));
@@ -1032,7 +1027,7 @@ def print_long (const FileList &files) -> void
 
               case LongColumn::size:
                 {
-                  if (f.type == FileType::directory)
+                  if (f.type == fs::file_type::directory)
                     {
                       if (Arguments::color)
                         std::printf ("%s%*s\x1b[0m", dir_size_color,
