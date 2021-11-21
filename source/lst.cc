@@ -200,10 +200,10 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag
   if (ext == S_exe_ext || ext == S_bat_ext || ext == S_cmd_ext)
     is_executable = true;
 #else
-  let const p = s.permissions ();
-  if ((p & fs::perms::owner_exec) != fs::perms::none
-      || (p & fs::perms::group_exec) != fs::perms::none
-      || (p & fs::perms::others_exec) != fs::perms::none)
+  let const perms = s.permissions ();
+  if ((perms & fs::perms::owner_exec) != fs::perms::none
+      || (perms & fs::perms::group_exec) != fs::perms::none
+      || (perms & fs::perms::others_exec) != fs::perms::none)
     is_executable = true;
 #endif
 
@@ -329,10 +329,10 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
   if (ext == S_exe_ext || ext == S_bat_ext || ext == S_cmd_ext)
     is_executable = true;
 #else
-  let const p = s.permissions ();
-  if ((p & fs::perms::owner_exec) != fs::perms::none
-      || (p & fs::perms::group_exec) != fs::perms::none
-      || (p & fs::perms::others_exec) != fs::perms::none)
+  let const perms = s.permissions ();
+  if ((perms & fs::perms::owner_exec) != fs::perms::none
+      || (perms & fs::perms::group_exec) != fs::perms::none
+      || (perms & fs::perms::others_exec) != fs::perms::none)
     is_executable = true;
 #endif
 
