@@ -688,7 +688,7 @@ static def file_color (const FileInfo &f) -> const char *
 
 def file_indicator (const FileInfo &f) -> char
 {
-  if (Arguments::file_type && f.is_executable)
+  if (!Arguments::file_type && f.is_executable)
     return '*';
 
   switch (f.type)
@@ -751,7 +751,8 @@ def print_file_name (const FileInfo &f, int width) -> void
   if (Arguments::color)
     std::fputs ("\x1b[0m", stdout);
   // Indicator
-  if (Arguments::classify)
+  if (Arguments::classify
+      && !(Arguments::long_listing && f.type == fs::file_type::symlink && f.target))
     {
       if (Arguments::color)
         {
