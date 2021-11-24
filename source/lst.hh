@@ -31,13 +31,6 @@ public:
   bool status_failed { false };
   bool is_executable { false };
   bool is_temporary { false };
-
-private:
-#ifdef _WIN32
-  HANDLE m_handle;
-#else
-  struct stat m_sb;
-#endif
 };
 
 using FileList = std::list<FileInfo>;
@@ -65,15 +58,21 @@ def get_file_time (HANDLE file_handle, std::time_t &out) -> bool;
 
 def get_shortcut_target (const fs::path &path, arena::string &target_out) -> bool;
 
+def get_file_size (BY_HANDLE_FILE_INFORMATION *file_info) -> std::uintmax_t;
+
+def get_link_count (BY_HANDLE_FILE_INFORMATION *file_info) -> unsigned;
+
 #else // _WIN32
 
 def get_owner_and_group (struct stat *sb, arena::string &owner_out,
                          arena::string &group_out) -> bool;
 
 def get_file_time (struct stat *sb, std::time_t &out) -> bool;
-#endif // _WIN32
 
-def file_time_to_time_t (fs::file_time_type ft) -> std::time_t;
+def get_file_size (struct stat *sb) -> std::uintmax_t;
+
+def get_link_count (struct stat *sb) -> unsigned;
+#endif // _WIN32
 
 def sort_files (FileList &files) -> void;
 

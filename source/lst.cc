@@ -242,34 +242,41 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
   let ext = p.extension ();
 
 #ifdef _WIN32
+  HANDLE handle;
+  static BY_HANDLE_FILE_INFORMATION file_info;
   let const flags = (FILE_FLAG_BACKUP_SEMANTICS
                      | (Arguments::dereference ? 0 : FILE_FLAG_OPEN_REPARSE_POINT));
-  m_handle = CreateFileW (fs::absolute (p).wstring ().c_str (),
-                          GENERIC_READ,
-                          FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-                          nullptr,
-                          OPEN_EXISTING,
-                          flags,
-                          nullptr);
-  if (m_handle == INVALID_HANDLE_VALUE)
+  handle = CreateFileW (fs::absolute (p).wstring ().c_str (),
+                        GENERIC_READ,
+                        FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nullptr,
+                        OPEN_EXISTING,
+                        flags,
+                        nullptr);
+  if (handle == INVALID_HANDLE_VALUE)
     {
       complain (p);
       return;
+    }
+  if (!GetFileInformationByHandle (handle, &file_info))
+    {
     }
 #else
+  static struct stat sb;
   if ((Arguments::dereference ? stat : lstat)
-      (fs::absolute (p).string<char> (arena::Allocator<char> {}).c_str (), &m_sb) == -1)
+      (fs::absolute (p).string<char> (arena::Allocator<char> {}).c_str (), &sb) == -1)
     {
       complain (p);
       return;
     }
-  // Alias so we can just use m_handle
-  struct stat *const m_handle = &m_sb;
+  // Alias so we can just use handle and file_info
+  struct stat *const handle = &sb;
+  struct stat &file_info = sb;
 #endif
 
   if (Arguments::long_listing)
     {
-      if (!get_owner_and_group (m_handle, owner, group))
+      if (!get_owner_and_group (handle, owner, group))
         {
 #ifdef _WIN32
           S_ec = std::error_code (GetLastError (), std::system_category ());
@@ -279,14 +286,9 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
           complain (p);
         }
 
-      size = fs::is_directory (s) ? 0 : fs::file_size (p, S_ec);
-      if (S_ec)
-        {
-          complain (p);
-          size = 0;
-        }
+      size = fs::is_directory (s) ? 0 : get_file_size (&file_info);
 
-      if (!get_file_time (m_handle, time))
+      if (!get_file_time (handle, time))
         {
 #ifdef _WIN32
           S_ec = std::error_code (GetLastError (), std::system_category ());
@@ -297,12 +299,7 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
           time = 0;
         }
 
-      link_count = fs::hard_link_count (p, S_ec);
-      if (S_ec)
-        {
-          complain (p);
-          link_count = 0;
-        }
+      link_count = get_link_count (&file_info);
 
       perms = s.permissions ();
 
@@ -330,10 +327,10 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
       switch (Arguments::sort_mode)
         {
           case SortMode::size:
-            size = fs::file_size (p);
+            size = fs::is_directory (s) ? 0 : get_file_size (&file_info);
             break;
           case SortMode::time:
-            time = file_time_to_time_t (fs::last_write_time (p));
+            get_file_time (handle, time);
             break;
           // All other sorting modes just need the name
           default:;
@@ -410,11 +407,6 @@ def list_dir (const fs::path &path) -> void
         list_dir (e.path ());
     }
 }
-
-//
-// TODO: get_owner_and_group, get_file_time
-// These should share the handle / stat buffer
-//
 
 #ifdef _WIN32
 
@@ -515,6 +507,17 @@ def get_file_time (HANDLE file_handle, std::time_t &out) -> bool
   return true;
 }
 
+def get_file_size (BY_HANDLE_FILE_INFORMATION *file_info) -> std::uintmax_t
+{
+  return ((static_cast<std::uintmax_t> (file_info->nFileSizeHigh) << sizeof (DWORD))
+          | file_info->nFileSizeLow);
+}
+
+def get_link_count (BY_HANDLE_FILE_INFORMATION *file_info) -> unsigned
+{
+  return file_info->nNumberOfLinks;
+}
+
 #else // _WIN32
 
 def get_owner_and_group (struct stat *sb, arena::string &owner_out,
@@ -545,6 +548,16 @@ def get_file_time (struct stat *sb, std::time_t &out) -> bool
     }
 
   return true;
+}
+
+def get_file_size (struct stat *sb) -> std::uintmax_t
+{
+  return static_cast<std::uintmax_t> (sb->st_size);
+}
+
+def get_link_count (struct stat *sb) -> unsigned
+{
+  return static_cast<unsigned> (sb->st_nlink);
 }
 
 #endif // _WIN32
