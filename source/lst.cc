@@ -697,6 +697,7 @@ def file_indicator (const FileInfo &f) -> char
       case fs::file_type::symlink:    return '@';
       case fs::file_type::fifo:       return '|';
       case fs::file_type::socket:     return '=';
+      case fs::file_type::not_found:  return '?';
       default:                   return 0;
     }
 }
@@ -713,6 +714,7 @@ static def file_indicator_color (const FileInfo &f) -> const char *
       case fs::file_type::symlink:    return "\x1b[36m";
       case fs::file_type::fifo:       return "\x1b[90m";
       case fs::file_type::socket:     return "\x1b[90m";
+      case fs::file_type::not_found:  return "\x1b[91m";
       default:                   return nullptr;
     }
 }
