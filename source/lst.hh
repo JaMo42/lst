@@ -31,6 +31,13 @@ public:
   bool status_failed { false };
   bool is_executable { false };
   bool is_temporary { false };
+
+private:
+#ifdef _WIN32
+  HANDLE m_handle;
+#else
+  struct stat m_sb;
+#endif
 };
 
 using FileList = std::list<FileInfo>;
@@ -50,13 +57,20 @@ def list_file (const fs::path &path) -> void;
 
 def list_dir (const fs::path &path) -> void;
 
-def get_owner_and_group (const fs::path &path, arena::string &owner_out,
+#ifdef _WIN32
+def get_owner_and_group (HANDLE file_handle, arena::string &owner_out,
                          arena::string &group_out) -> bool;
 
-def get_file_time (const fs::path &path, std::time_t &out) -> bool;
+def get_file_time (HANDLE file_handle, std::time_t &out) -> bool;
 
-#ifdef _WIN32
 def get_shortcut_target (const fs::path &path, arena::string &target_out) -> bool;
+
+#else // _WIN32
+
+def get_owner_and_group (struct stat *sb, arena::string &owner_out,
+                         arena::string &group_out) -> bool;
+
+def get_file_time (struct stat *sb, std::time_t &out) -> bool;
 #endif // _WIN32
 
 def file_time_to_time_t (fs::file_time_type ft) -> std::time_t;

@@ -19,13 +19,12 @@ FileList G_singles;
 std::list<std::pair<fs::path, FileList>> G_directories;
 
 static std::error_code S_ec;
-static arena::vector<int> S_did_complain_about;
+static bool S_did_complain;
 
 
 static def complain (const fs::path &file)
 {
-  if (std::find (S_did_complain_about.begin (), S_did_complain_about.end (),
-                 S_ec.value ()) == S_did_complain_about.end ())
+  if (!S_did_complain)
     {
 #ifdef _WIN32
       if (Arguments::english_errors)
@@ -50,7 +49,7 @@ static def complain (const fs::path &file)
           std::fprintf (stderr, "%s: %s: %s\n", G_program, file.string ().c_str (),
                         S_ec.message ().c_str ());
         }
-      S_did_complain_about.push_back (S_ec.value ());
+      S_did_complain = true;
     }
   S_ec.clear ();
 }
@@ -156,7 +155,10 @@ static def add_frills (const arena::string &str, arena::string &out)
       c = unicode::utf8_to_codepoint (p, &cp_size);
 
       if (c == quote_char)
-        out.push_back ('\\');
+        {
+          out.push_back ('\\');
+          out.push_back (c);
+        }
       // TODO: the locale version of std::isprint returns false for '파' but
       // true for '일'?, this solution makes the handling of unicode sequences
       // in escape_nongraphic pointless.
@@ -226,6 +228,7 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
     return Arguments::dereference ? fs::status (p, S_ec) : fs::symlink_status (p, S_ec);
   };
   let const s = status (p);
+  S_did_complain = false;
   if (S_ec)
     {
       complain (p);
@@ -234,16 +237,39 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
       return;
     }
 
-  S_did_complain_about.clear ();
-
   let p_str = unicode::path_to_str (p.filename ());
   add_frills (p_str, name);
-
   let ext = p.extension ();
+
+#ifdef _WIN32
+  let const flags = (FILE_FLAG_BACKUP_SEMANTICS
+                     | (Arguments::dereference ? 0 : FILE_FLAG_OPEN_REPARSE_POINT));
+  m_handle = CreateFileW (fs::absolute (p).wstring ().c_str (),
+                          GENERIC_READ,
+                          FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr,
+                          OPEN_EXISTING,
+                          flags,
+                          nullptr);
+  if (m_handle == INVALID_HANDLE_VALUE)
+    {
+      complain (p);
+      return;
+    }
+#else
+  if ((Arguments::dereference ? stat : lstat)
+      (fs::absolute (p).string<char> (arena::Allocator<char> {}).c_str (), &m_sb) == -1)
+    {
+      complain (p);
+      return;
+    }
+  // Alias so we can just use m_handle
+  struct stat *const m_handle = &m_sb;
+#endif
 
   if (Arguments::long_listing)
     {
-      if (!get_owner_and_group (fs::absolute (p), owner, group))
+      if (!get_owner_and_group (m_handle, owner, group))
         {
 #ifdef _WIN32
           S_ec = std::error_code (GetLastError (), std::system_category ());
@@ -260,7 +286,7 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
           size = 0;
         }
 
-      if (!get_file_time (p, time))
+      if (!get_file_time (m_handle, time))
         {
 #ifdef _WIN32
           S_ec = std::error_code (GetLastError (), std::system_category ());
@@ -396,30 +422,13 @@ IShellLink *G_sl = nullptr;
 IPersistFile *G_pf = nullptr;
 bool G_has_shortcut_interfaces = true;
 
-def get_owner_and_group (const fs::path &path, arena::string &owner_out,
+def get_owner_and_group (HANDLE file_handle, arena::string &owner_out,
                          arena::string &group_out) -> bool
 {
   PSID owner_sid;
   PSECURITY_DESCRIPTOR sd;
   SID_NAME_USE use = SidTypeUnknown;
   DWORD owner_size = 1, group_size = 1;
-  HANDLE file_handle;
-
-  let const flags = (FILE_FLAG_BACKUP_SEMANTICS
-                     | (Arguments::dereference ? 0 : FILE_FLAG_OPEN_REPARSE_POINT));
-  file_handle = CreateFileW (path.wstring ().c_str (),
-                             GENERIC_READ,
-                             FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-                             nullptr,
-                             OPEN_EXISTING,
-                             flags,
-                             nullptr);
-  if (file_handle == INVALID_HANDLE_VALUE)
-    {
-      owner_out.assign ("?");
-      group_out.assign ("?");
-      return false;
-    }
 
   if (GetSecurityInfo (file_handle, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION,
                        &owner_sid, NULL, NULL, NULL, &sd)
@@ -486,25 +495,9 @@ static def win_file_time_to_time_t (FILETIME ft) -> std::time_t
   return conv.QuadPart / 10000000ULL - 11644473600ULL;
 }
 
-def get_file_time (const fs::path &path, std::time_t &out) -> bool
+def get_file_time (HANDLE file_handle, std::time_t &out) -> bool
 {
-  HANDLE file_handle;
   FILETIME access, write, creation;
-
-  let const flags = (FILE_FLAG_BACKUP_SEMANTICS
-                     | (Arguments::dereference ? 0 : FILE_FLAG_OPEN_REPARSE_POINT));
-  file_handle = CreateFileW (path.wstring ().c_str (),
-                             GENERIC_READ,
-                             FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-                             nullptr,
-                             OPEN_EXISTING,
-                             flags,
-                             nullptr);
-  if (file_handle == INVALID_HANDLE_VALUE)
-    {
-      out = 0;
-      return false;
-    }
 
   if (!GetFileTime (file_handle, &creation, &access, &write))
     {
@@ -524,23 +517,14 @@ def get_file_time (const fs::path &path, std::time_t &out) -> bool
 
 #else // _WIN32
 
-def get_owner_and_group (const fs::path &path, arena::string &owner_out,
+def get_owner_and_group (struct stat *sb, arena::string &owner_out,
                          arena::string &group_out) -> bool
 {
-  struct stat sb {};
   struct passwd *pw = nullptr;
   struct group *grp = nullptr;
 
-  let const stat_func = Arguments::dereference ? stat : lstat;
-  if (stat_func (path.string<char> (arena::Allocator<char> {}).c_str (), &sb) == -1)
-    {
-      owner_out.assign ("?");
-      group_out.assign ("?");
-      return false;
-    }
-
-  pw = getpwuid (sb.st_uid);
-  grp = getgrgid (sb.st_gid);
+  pw = getpwuid (sb->st_uid);
+  grp = getgrgid (sb->st_gid);
 
   owner_out.assign (pw->pw_name);
   group_out.assign (grp->gr_name);
@@ -548,17 +532,8 @@ def get_owner_and_group (const fs::path &path, arena::string &owner_out,
   return true;
 }
 
-def get_file_time (const fs::path &path, std::time_t &out) -> bool
+def get_file_time (struct stat *sb, std::time_t &out) -> bool
 {
-  struct stat sb {};
-
-  let const stat_func = Arguments::dereference ? stat : lstat;
-  if (stat_func (path.string<char> (arena::Allocator<char> {}).c_str (), &sb) == -1)
-    {
-      out = 0;
-      return false;
-    }
-
   switch (Arguments::time_mode)
     {
       case TimeMode::access: out = sb.st_atime; break;
