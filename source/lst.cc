@@ -539,12 +539,12 @@ def get_file_time (struct stat *sb, std::time_t &out) -> bool
 {
   switch (Arguments::time_mode)
     {
-      case TimeMode::access: out = sb.st_atime; break;
-      case TimeMode::write: out = sb.st_mtime; break;
+      case TimeMode::access: out = sb->st_atime; break;
+      case TimeMode::write: out = sb->st_mtime; break;
       // st_ctime is not the creation time but the time of the last inode
       // change. Unix, per standard, does not store the creation time so this
       // is the best we can get.
-      case TimeMode::creation: out = sb.st_ctime; break;
+      case TimeMode::creation: out = sb->st_ctime; break;
     }
 
   return true;
