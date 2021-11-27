@@ -28,6 +28,7 @@ bool ignore_backups = false;
 bool dereference = false;
 TimeMode time_mode = TimeMode::write;
 const char *time_format = nullptr;
+bool hyperlinks = false;
 }
 
 const char *G_program;
@@ -61,6 +62,7 @@ static def usage ()
                static_cast<int> (default_long_output_format.size ()),
                default_long_output_format.data ());
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
+  std::puts ("      --hyperlinks      Hyperlink file names");
   std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
   std::puts ("  -l                    Use long listing format.");
   std::puts ("  -L, --dereference     When showing file information about a symbolic link,");
@@ -172,6 +174,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
   else if (opt_name ==          "case-sensitive"sv) case_sensitive = true;
   else if (opt_name ==          "ignore-backups"sv) ignore_backups = true;
   else if (opt_name ==             "dereference"sv) dereference = true;
+  else if (opt_name ==               "hyperlink"sv) hyperlinks = true;
 
   else if (opt_name == "color"sv)
     {

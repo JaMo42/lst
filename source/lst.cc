@@ -196,7 +196,7 @@ static def add_frills (const arena::string &str, arena::string &out)
 
 
 FileInfo::FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag)
-  : _path (p.filename ())
+  : _path (fs::absolute (p))
 {
   let const p_str = unicode::path_to_str (p);
   add_frills (p_str, name);
@@ -230,7 +230,7 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &s, link_target_tag
 
 
 FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
-  : _path (p.filename ())
+  : _path (fs::absolute (p))
 {
   let const status = [](const fs::path &p) {
     return Arguments::dereference ? fs::status (p, S_ec) : fs::symlink_status (p, S_ec);
@@ -759,7 +759,12 @@ def print_file_name (const FileInfo &f, int width) -> void
   // File name
   if (Arguments::color)
     std::fputs (file_color (f), stdout);
-  std::fputs (f.name.c_str (), stdout);
+  if (Arguments::hyperlinks)
+    std::printf ("\x1b]8;;file:///%s\x1b\\%s\x1b]8;;\x1b\\",
+                 unicode::path_to_str (f._path).c_str (),
+                 f.name.c_str ());
+  else
+    std::fputs (f.name.c_str (), stdout);
   if (Arguments::color)
     std::fputs ("\x1b[0m", stdout);
   // Indicator
