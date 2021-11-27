@@ -66,11 +66,6 @@ def utf8_to_codepoint (const char8_t *bytes, int *cp_size) -> char32_t
     }
 }
 
-// TODO: display_width, padding_offset, CodepointIterator
-// Find out why the iterator includes the terminating null byte and remove
-// special handling from display_width and padding_offset.
-// Note: display_width (char32_t) needs this now (for file_name_width)
-
 def display_width (char32_t ch) -> int
 {
   // Note: For performance this does not check for zero-width characters.

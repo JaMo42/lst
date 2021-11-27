@@ -66,48 +66,19 @@ static def complain (const fs::path &file)
 
 static def escape_nongraphic (char32_t c, arena::string &out)
 {
-  // TODO
-  // maybe don't use escape sequences for unicode but 'U+XXXX' style sequences
-  // with a different color (will need extra handling for file width, like
-  // pre-calculating the width or a width offset in add_frills)
-  // ^ if doing this, use color for ascii escapes as well.
-
-  static constexpr char digit_chars[] = "0123456789ABCDEF";
+  static constexpr char hex_digits[] = "0123456789ABCDEF";
   out.push_back ('\\');
-  if (c < 0x80)
+  if constexpr (ascii_escape_octal)
     {
-      if constexpr (ascii_escape_octal)
-        {
-          out.push_back ('0' + c / 64);
-          out.push_back ('0' + (c / 8) % 8);
-          out.push_back ('0' + c % 8);
-        }
-      else
-        {
-          out.push_back ('x');
-          out.push_back (digit_chars[c / 16]);
-          out.push_back (digit_chars[c % 16]);
-        }
-    }
-  else if (c < 0x10000)
-    {
-      out.push_back ('u');
-      out.push_back (digit_chars[c / 0x1000]);
-      out.push_back (digit_chars[(c / 0x100) % 0x10]);
-      out.push_back (digit_chars[(c / 0x10) % 0x10]);
-      out.push_back (digit_chars[c % 0x10]);
+      out.push_back ('0' + c / 64);
+      out.push_back ('0' + (c / 8) % 8);
+      out.push_back ('0' + c % 8);
     }
   else
     {
-      out.push_back ('U');
-      out.push_back (digit_chars[c / 0x10000000]);
-      out.push_back (digit_chars[(c / 0x1000000) % 0x10]);
-      out.push_back (digit_chars[(c / 0x100000) % 0x10]);
-      out.push_back (digit_chars[(c / 0x10000) % 0x10]);
-      out.push_back (digit_chars[(c / 0x1000) % 0x10]);
-      out.push_back (digit_chars[(c / 0x100) % 0x10]);
-      out.push_back (digit_chars[(c / 0x10) % 0x10]);
-      out.push_back (digit_chars[c % 0x10]);
+      out.push_back ('x');
+      out.push_back (hex_digits[c / 16]);
+      out.push_back (hex_digits[c % 16]);
     }
 }
 
@@ -168,10 +139,6 @@ static def add_frills (const arena::string &str, arena::string &out)
           out.push_back ('\\');
           out.push_back (c);
         }
-      // TODO: the locale version of std::isprint returns false for '파' but
-      // true for '일'?, this solution makes the handling of unicode sequences
-      // in escape_nongraphic pointless.
-      //else if (!std::isprint (c, loc))
       else if (c < 0x80 && !std::isprint (c))
         {
           switch (Arguments::nongraphic)
@@ -412,14 +379,14 @@ def list_dir (const fs::path &path) -> void
       for (let pattern : Arguments::ignore_patterns)
         {
           if (match (pattern, pstr))
-            goto continue_outer;
+            goto skip_file;
         }
 
       l->emplace_back (e.path (), e.symlink_status ());
 
       if (Arguments::recursive && e.is_directory ())
         list_dir (e.path ());
-continue_outer:;
+skip_file:;
     }
 }
 
@@ -435,7 +402,7 @@ def get_owner_and_group (HANDLE file_handle, arena::string &owner_out,
   PSID owner_sid;
   PSECURITY_DESCRIPTOR sd;
   SID_NAME_USE use = SidTypeUnknown;
-  DWORD owner_size = 1, group_size = 1;
+  DWORD owner_size = 0, group_size = 0;
 
   if (GetSecurityInfo (file_handle, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION,
                        &owner_sid, NULL, NULL, NULL, &sd)
@@ -601,7 +568,6 @@ case_insensitive_compare (const fs::path &a, const fs::path &b)
 
   for (std::size_t i = 0; i < l; ++i)
     {
-      // See add_frills regarding non-ascii values
       c1 = static_cast<char32_t> (astr[i]) < 0x80 ? std::tolower (astr[i]) : astr[i];
       c2 = static_cast<char32_t> (bstr[i]) < 0x80 ? std::tolower (bstr[i]) : bstr[i];
 
