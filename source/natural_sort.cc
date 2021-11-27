@@ -1,4 +1,5 @@
 #include "natural_sort.hh"
+#include "args.hh"
 
 static def compare_non_digit (char a, char b) -> int
 {
@@ -7,7 +8,9 @@ static def compare_non_digit (char a, char b) -> int
     return c;
   if ((c = std::ispunct (a) - std::ispunct (b)) != 0)
     return c;
-  return a - b;
+  if (Arguments::case_sensitive)
+    return a - b;
+  return std::tolower (a) - std::tolower (b);
 }
 
 static def compare_non_digit (std::string_view a, std::string_view b) -> int
