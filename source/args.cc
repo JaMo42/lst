@@ -29,6 +29,7 @@ bool dereference = false;
 TimeMode time_mode = TimeMode::write;
 const char *time_format = nullptr;
 bool hyperlinks = false;
+arena::vector<std::string_view> ignore_patterns;
 }
 
 const char *G_program;
@@ -62,8 +63,9 @@ static def usage ()
                static_cast<int> (default_long_output_format.size ()),
                default_long_output_format.data ());
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
-  std::puts ("      --hyperlinks      Hyperlink file names");
+  std::puts ("      --hyperlinks      Hyperlink file names.");
   std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
+  std::puts ("      --ignore=PATTERN  Do not list entries matching shell PATTERN.");
   std::puts ("  -l                    Use long listing format.");
   std::puts ("  -L, --dereference     When showing file information about a symbolic link,");
   std::puts ("                          show information for the file the link references");
@@ -269,6 +271,11 @@ static inline def handle_long_opt (std::string_view elem) -> bool
     {
       if (require_arg ()) return false;
       Arguments::time_format = arg.data ();
+    }
+  else if (opt_name == "ignore"sv)
+    {
+      if (require_arg ()) return false;
+      Arguments::ignore_patterns.push_back (arg);
     }
   else
     {

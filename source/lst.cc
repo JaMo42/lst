@@ -1,5 +1,6 @@
 #include "lst.hh"
 #include "columns.hh"
+#include "match.hh"
 
 #ifdef _WIN32
 static const fs::path S_lnk_ext { L".lnk"s };
@@ -400,19 +401,25 @@ def list_dir (const fs::path &path) -> void
 
   for (let e : fs::directory_iterator (path))
     {
-      if (!Arguments::all
-          && e.path ().filename ().c_str ()[0] == std::filesystem::path::value_type {'.'})
+      let const pstr = unicode::path_to_str (e.path ().filename ());
+      if (!Arguments::all && pstr[0] == '.')
         continue;
       if (Arguments::ignore_backups
-          && (e.path ().extension () == S_tmp_ext
-              || e.path ().extension () == S_bak_ext
-              || unicode::path_to_str (e.path ().filename ()).back () == '~'))
+          && (pstr.ends_with (".tmp"sv)
+              || pstr.ends_with (".bak"sv)
+              || pstr.back () == '~'))
         continue;
+      for (let pattern : Arguments::ignore_patterns)
+        {
+          if (match (pattern, pstr))
+            goto continue_outer;
+        }
 
       l->emplace_back (e.path (), e.symlink_status ());
 
       if (Arguments::recursive && e.is_directory ())
         list_dir (e.path ());
+continue_outer:;
     }
 }
 

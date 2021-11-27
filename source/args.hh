@@ -99,6 +99,7 @@ extern bool dereference;
 extern TimeMode time_mode;
 extern const char *time_format;
 extern bool hyperlinks;
+extern arena::vector<std::string_view> ignore_patterns;
 }
 
 def parse_args (int argc, const char **argv,
