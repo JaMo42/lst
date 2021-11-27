@@ -1,6 +1,7 @@
 #include "lst.hh"
 #include "columns.hh"
 #include "match.hh"
+#include "natural_sort.hh"
 
 #ifdef _WIN32
 static const fs::path S_lnk_ext { L".lnk"s };
@@ -630,9 +631,9 @@ def sort_files (FileList &files) -> void
           case SortMode::version:
             sort = SORT_FUNC {
               (void)compare_path;  // Suppress unused capture warning
-              // TODO
-              (void)a; (void)b;
-              return true;
+              return ((natural_compare (a._path.filename (),
+                                       b._path.filename ()) < 0)
+                      ^ Arguments::reverse);
             };
             break;
           case SortMode::none:;

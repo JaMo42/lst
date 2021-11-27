@@ -22,7 +22,7 @@ ifndef $(DEBUG)
 	CXXFLAGS += -O3 -march=native -mtune=native
 endif
 
-SRC = match.cc columns.cc unicode.cc args.cc lst.cc main.cc
+SRC = natural_sort.cc match.cc columns.cc unicode.cc args.cc lst.cc main.cc
 OBJ = $(patsubst %.cc,build/%.o,$(SRC))
 OBJ += build/arena_alloc.o
 DEP = $(wildcard source/*.hh)
