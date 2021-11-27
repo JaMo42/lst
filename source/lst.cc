@@ -86,7 +86,6 @@ static def escape_nongraphic (char32_t c, arena::string &out)
 
 static def add_frills (const arena::string &str, arena::string &out)
 {
-  let const loc = std::locale ("");
   let const always_quote = Arguments::quoting == QuoteMode::double_;
   let need_quoting = false;
   let quote_char = always_quote ? '"' :  U'\0';
@@ -230,13 +229,11 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
                         OPEN_EXISTING,
                         flags,
                         nullptr);
-  if (handle == INVALID_HANDLE_VALUE)
+  if (handle == INVALID_HANDLE_VALUE
+      || !GetFileInformationByHandle (handle, &file_info))
     {
       complain (p);
       return;
-    }
-  if (!GetFileInformationByHandle (handle, &file_info))
-    {
     }
 #else
   static struct stat sb;
