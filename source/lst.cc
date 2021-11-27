@@ -21,6 +21,14 @@ std::list<std::pair<fs::path, FileList>> G_directories;
 static std::error_code S_ec;
 static bool S_did_complain;
 
+#ifdef _WIN32
+static std::map<PSID, arena::string> G_users;
+static std::map<PSID, arena::string> G_groups;
+#else
+static std::map<uid_t, arena::string> G_groups;
+static std::map<pid_t, arena::string> G_users;
+#endif
+
 
 static def complain (const fs::path &file)
 {
@@ -431,25 +439,36 @@ def get_owner_and_group (HANDLE file_handle, arena::string &owner_out,
       return false;
     }
 
-  // first call for buffer sizes
-  if (!LookupAccountSidA (NULL, owner_sid, NULL, (LPDWORD)&owner_size,
-                          NULL, (LPDWORD)&group_size, &use)
-      && GetLastError () != ERROR_INSUFFICIENT_BUFFER)
+  if (G_users.contains (owner_sid))
     {
-      owner_out.assign ("?");
-      group_out.assign ("?");
-      return false;
+      owner_out.assign (G_users[owner_sid]);
+      group_out.assign (G_groups[owner_sid]);
     }
-
-  owner_out.resize (owner_size);
-  group_out.resize (group_size);
-
-  if (!LookupAccountSidA (NULL, owner_sid, owner_out.data (), &owner_size,
-                          group_out.data (), &group_size, &use))
+  else
     {
-      owner_out.assign ("?");
-      group_out.assign ("?");
-      return false;
+      // first call for buffer sizes
+      if (!LookupAccountSidA (NULL, owner_sid, NULL, (LPDWORD)&owner_size,
+                              NULL, (LPDWORD)&group_size, &use)
+          && GetLastError () != ERROR_INSUFFICIENT_BUFFER)
+        {
+          owner_out.assign ("?");
+          group_out.assign ("?");
+          return false;
+        }
+
+      owner_out.resize (owner_size);
+      group_out.resize (group_size);
+
+      if (!LookupAccountSidA (NULL, owner_sid, owner_out.data (), &owner_size,
+                              group_out.data (), &group_size, &use))
+        {
+          owner_out.assign ("?");
+          group_out.assign ("?");
+          return false;
+        }
+
+      G_users[owner_sid] = owner_out;
+      G_groups[owner_sid] = group_out;
     }
 
   return true;
@@ -526,11 +545,23 @@ def get_owner_and_group (struct stat *sb, arena::string &owner_out,
   struct passwd *pw = nullptr;
   struct group *grp = nullptr;
 
-  pw = getpwuid (sb->st_uid);
-  grp = getgrgid (sb->st_gid);
+  if (G_users.contains (sb->st_uid))
+    owner_out.assign (G_users[sb->st_uid]);
+  else
+    {
+      pw = getpwuid (sb->st_uid);
+      owner_out.assign (pw->pw_name);
+      G_users[sb->st_uid] = owner_out;
+    }
 
-  owner_out.assign (pw->pw_name);
-  group_out.assign (grp->gr_name);
+  if (G_groups.contains (sb->st_gid))
+    owner_out.assign (G_groups[sb->st_gid]);
+  else
+    {
+      pw = getpwuid (sb->st_gid);
+      owner_out.assign (pw->gr_name);
+      G_groups[sb->st_gid] = owner_out;
+    }
 
   return true;
 }

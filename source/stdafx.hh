@@ -15,6 +15,7 @@
 #include <string_view>
 #include <list>
 #include <bitset>
+#include <map>
 
 #include <algorithm>
 #include <filesystem>
