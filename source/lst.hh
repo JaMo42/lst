@@ -41,6 +41,9 @@ extern std::time_t G_six_months_ago;
 extern IShellLink *G_sl;
 extern IPersistFile *G_pf;
 extern bool G_has_shortcut_interfaces;
+#else
+extern std::map<pid_t, arena::string> G_users;
+extern std::map<uid_t, arena::string> G_groups;
 #endif // _WIN32
 
 extern FileList G_singles;

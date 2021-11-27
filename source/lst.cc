@@ -25,8 +25,8 @@ static bool S_did_complain;
 static std::map<PSID, arena::string> G_users;
 static std::map<PSID, arena::string> G_groups;
 #else
-static std::map<uid_t, arena::string> G_groups;
-static std::map<pid_t, arena::string> G_users;
+std::map<pid_t, arena::string> G_users;
+std::map<uid_t, arena::string> G_groups;
 #endif
 
 
@@ -542,27 +542,8 @@ def get_link_count (BY_HANDLE_FILE_INFORMATION *file_info) -> unsigned
 def get_owner_and_group (struct stat *sb, arena::string &owner_out,
                          arena::string &group_out) -> bool
 {
-  struct passwd *pw = nullptr;
-  struct group *grp = nullptr;
-
-  if (G_users.contains (sb->st_uid))
-    owner_out.assign (G_users[sb->st_uid]);
-  else
-    {
-      pw = getpwuid (sb->st_uid);
-      owner_out.assign (pw->pw_name);
-      G_users[sb->st_uid] = owner_out;
-    }
-
-  if (G_groups.contains (sb->st_gid))
-    owner_out.assign (G_groups[sb->st_gid]);
-  else
-    {
-      pw = getpwuid (sb->st_gid);
-      owner_out.assign (pw->gr_name);
-      G_groups[sb->st_gid] = owner_out;
-    }
-
+  owner_out.assign (G_users[sb->st_uid]);
+  group_out.assign (G_groups[sb->st_gid]);
   return true;
 }
 
