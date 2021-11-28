@@ -514,7 +514,12 @@ def get_link_count (BY_HANDLE_FILE_INFORMATION *file_info) -> unsigned
 def get_owner_and_group (struct stat *sb, arena::string &owner_out,
                          arena::string &group_out) -> bool
 {
+  if (!G_users.contains (sb->st_uid))
+    G_users[sb->st_uid] = arena::string (getpwuid (sb->st_uid)->pw_name);
   owner_out.assign (G_users[sb->st_uid]);
+
+  if (!G_groups.contains (sb->st_gid))
+    G_groups[sb->st_gid] = arena::string (getgrgid (sb->st_gid)->gr_name);
   group_out.assign (G_groups[sb->st_gid]);
   return true;
 }

@@ -45,5 +45,13 @@ $(OUT): $(OBJ)
 	@echo ' LINK $@'
 	@$(CXX) $(LDFLAGS) -o $@ $^
 
+callgrind: $(OUT)
+	valgrind --tool=callgrind --dump-instr=yes --trace-jump=yes ./$(OUT) -l
+
+cachegrind: $(OUT)
+	valgrind --tool=cachegrind --branch-sim=yes ./$(OUT) -l
+
 clean:
 	rm -f $(OBJ) $(OUT) source/stdafx.hh.gch lst.ilk lst.pdb
+
+.PHONY: all callgrind cachegrind clean

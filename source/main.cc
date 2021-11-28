@@ -73,16 +73,6 @@ def main (const int argc, const char *argv[]) -> int
                             G_program);
             }
         }
-#else
-      // Cache all user and group names
-      setpwent ();
-      for (let *pwd = getpwent (); pwd; pwd = getpwent ())
-        G_users.emplace (std::make_pair (pwd->pw_uid, arena::string (pwd->pw_name)));
-      endpwent ();
-      setgrent ();
-      for (let *grp = getgrent (); grp; grp = getgrent ())
-        G_groups.emplace (std::make_pair (grp->gr_gid, arena::string (grp->gr_name)));
-      endgrent ();
 #endif
     }
 
