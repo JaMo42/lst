@@ -1081,6 +1081,8 @@ def print_long (const FileList &files) -> void
 
 def print_columns (const FileList &files) -> void
 {
+  if (files.empty ())
+    return;
   Columns cols;
   for (let const &f : files)
     cols.add (&f);
