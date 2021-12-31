@@ -633,13 +633,13 @@ def sort_files (FileList &files) -> void
                                        b._path.filename ()) < 0)
                       ^ Arguments::reverse);
             };
-          break; case SortMode::name_length:
+          break; case SortMode::width:
             sort = SORT_FUNC {
-              let const alen = unicode::display_width (unicode::path_to_str (a._path));
-              let const blen = unicode::display_width (unicode::path_to_str (b._path));
-              return (alen == blen
+              let const awidth = unicode::display_width (unicode::path_to_str (a._path));
+              let const bwidth = unicode::display_width (unicode::path_to_str (b._path));
+              return (awidth == bwidth
                       ? compare_path (a._path, b._path) < 0
-                      : alen < blen);
+                      : awidth < bwidth);
             };
           break; case SortMode::none:;
         }

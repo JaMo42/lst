@@ -9,7 +9,7 @@ enum class SortMode
   size,
   time,
   version,
-  name_length
+  width
 };
 
 enum class QuoteMode

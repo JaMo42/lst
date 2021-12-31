@@ -80,7 +80,7 @@ static def usage ()
   std::puts ("  -R, --recursive       List subdirectories recursively.");
   std::puts ("  -S                    Sort by file size, largest first.");
   std::puts ("      --sort=WORD       Sort by WORD instead of name: none (-U), time (-t),");
-  std::puts ("                          size (-S), extension (-X), version (-v).");
+  std::puts ("                          size (-S), extension (-X), version (-v), width (-W).");
   std::puts ("      --case-sensitive  Do not ignore case when sorting by name or extension.");
   std::puts ("  -t                    Sort y time, newest first.");
   std::puts ("      --time=WORD       Change the default of using modification times;");
@@ -94,6 +94,7 @@ static def usage ()
   std::puts ("  -u                    Use time of last access for time.");
   std::puts ("  -U                    Do not sort; list entries in directory order.");
   std::puts ("  -v                    Natural sort of version numbers within file names.");
+  std::puts ("  -W                    Sort by file name width.");
   std::puts ("      --width=COLS      Set the output width for multi column output to COLS.");
   std::puts ("  -X                    Sort alphabetically by entry extension.");
   std::puts ("  -1                    List one file per line.");
@@ -115,6 +116,7 @@ static inline def handle_short_opt (char flag)
       case 'X': Arguments::sort_mode = SortMode::extension; break;
       case 't': Arguments::sort_mode = SortMode::time; break;
       case 'U': Arguments::sort_mode = SortMode::none; break;
+      case 'W': Arguments::sort_mode = SortMode::width; break;
       case 'N': Arguments::quoting = QuoteMode::literal; break;
       case 'Q': Arguments::quoting = QuoteMode::double_; break;
       case 'b': Arguments::nongraphic = NongraphicMode::escape; break;
@@ -208,7 +210,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
       else if (arg ==      "size"sv) Arguments::sort_mode = SortMode::size;
       else if (arg ==      "time"sv) Arguments::sort_mode = SortMode::time;
       else if (arg ==   "version"sv) Arguments::sort_mode = SortMode::version;
-      else if (arg ==    "length"sv) Arguments::sort_mode = SortMode::name_length;
+      else if (arg ==     "width"sv) Arguments::sort_mode = SortMode::width;
       else
         {
           std::fprintf (stderr, "%s: invalid argument ‘%.*s’ for ‘--%.*s’\n",
@@ -221,7 +223,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
           std::fputs ("  - ‘size’\n", stderr);
           std::fputs ("  - ‘time’\n", stderr);
           std::fputs ("  - ‘version’\n", stderr);
-          std::fputs ("  - ‘length’\n", stderr);
+          std::fputs ("  - ‘width’\n", stderr);
           return false;
         }
     }
