@@ -599,12 +599,11 @@ def sort_files (FileList &files) -> void
     {
       switch (Arguments::sort_mode)
         {
-          case SortMode::name:
+          break; case SortMode::name:
             sort = SORT_FUNC {
               return (compare_path (a._path, b._path) < 0) ^ Arguments::reverse;
             };
-            break;
-          case SortMode::extension:
+          break; case SortMode::extension:
             sort = SORT_FUNC {
               let const c = compare_path (a._path.extension (),
                                           b._path.extension ());
@@ -612,8 +611,7 @@ def sort_files (FileList &files) -> void
               return (((c ? c : compare_path (a._path, b._path)) < 0)
                       ^ Arguments::reverse);
             };
-            break;
-          case SortMode::size:
+          break; case SortMode::size:
             sort = SORT_FUNC {
               // If both sizes are equal, compare the filename
               return ((a.size == b.size
@@ -621,24 +619,29 @@ def sort_files (FileList &files) -> void
                        : a.size > b.size)
                       ^ Arguments::reverse);
             };
-            break;
-          case SortMode::time:
+          break; case SortMode::time:
             sort = SORT_FUNC {
               let const d = difftime (a.time, b.time);
               // If both times are equal, compare the file name
               return ((d ? d > 0 : compare_path (a._path, b._path) < 0)
                       ^ Arguments::reverse);
             };
-            break;
-          case SortMode::version:
+          break; case SortMode::version:
             sort = SORT_FUNC {
               (void)compare_path;  // Suppress unused capture warning
               return ((natural_compare (a._path.filename (),
                                        b._path.filename ()) < 0)
                       ^ Arguments::reverse);
             };
-            break;
-          case SortMode::none:;
+          break; case SortMode::name_length:
+            sort = SORT_FUNC {
+              let const alen = unicode::display_width (unicode::path_to_str (a._path));
+              let const blen = unicode::display_width (unicode::path_to_str (b._path));
+              return (alen == blen
+                      ? compare_path (a._path, b._path) < 0
+                      : alen < blen);
+            };
+          break; case SortMode::none:;
         }
     }
   #undef SORT_FUNC

@@ -208,6 +208,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
       else if (arg ==      "size"sv) Arguments::sort_mode = SortMode::size;
       else if (arg ==      "time"sv) Arguments::sort_mode = SortMode::time;
       else if (arg ==   "version"sv) Arguments::sort_mode = SortMode::version;
+      else if (arg ==    "length"sv) Arguments::sort_mode = SortMode::name_length;
       else
         {
           std::fprintf (stderr, "%s: invalid argument ‘%.*s’ for ‘--%.*s’\n",
@@ -220,6 +221,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
           std::fputs ("  - ‘size’\n", stderr);
           std::fputs ("  - ‘time’\n", stderr);
           std::fputs ("  - ‘version’\n", stderr);
+          std::fputs ("  - ‘length’\n", stderr);
           return false;
         }
     }

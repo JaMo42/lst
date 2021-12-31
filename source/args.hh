@@ -8,7 +8,8 @@ enum class SortMode
   extension,
   size,
   time,
-  version
+  version,
+  name_length
 };
 
 enum class QuoteMode
