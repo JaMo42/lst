@@ -8,7 +8,8 @@ Columns::Columns ()
 
 def Columns::add (const FileInfo *f) -> void
 {
-  let const width = unicode::display_width (f->name) + (file_indicator (*f) != 0);
+  let const width = (unicode::display_width (f->name)
+                     + (Arguments::classify ? (file_indicator (*f) != 0) : 0));
   let const is_quoted = ((Arguments::quoting == QuoteMode::default_)
                          && (f->name.front () == '\'' || f->name.front () == '"')
                          && (f->name.front () == f->name.back ()));
