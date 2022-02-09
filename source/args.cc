@@ -146,7 +146,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
   let const require_arg = [&arg, &opt_name]() {
     if (arg.empty ())
       {
-        std::fprintf (stderr, "%s: option ‘--%.*s’ requires and argument\n",
+        std::fprintf (stderr, "%s: option ‘--%.*s’ requires an argument\n",
                       G_program,
                       static_cast<int> (opt_name.size ()), opt_name.data ());
         return true;
