@@ -63,7 +63,7 @@ static def usage ()
                static_cast<int> (default_long_output_format.size ()),
                default_long_output_format.data ());
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
-  std::puts ("      --hyperlinks      Hyperlink file names.");
+  std::puts ("      --hyperlink       Hyperlink file names.");
   std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
   std::puts ("      --ignore=PATTERN  Do not list entries matching shell PATTERN.");
   std::puts ("  -l                    Use long listing format.");
