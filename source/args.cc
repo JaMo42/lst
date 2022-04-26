@@ -63,7 +63,7 @@ static def usage ()
                static_cast<int> (default_long_output_format.size ()),
                default_long_output_format.data ());
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
-  std::puts ("      --hyperlinks      Hyperlink file names.");
+  std::puts ("      --hyperlink       Hyperlink file names.");
   std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
   std::puts ("      --ignore=PATTERN  Do not list entries matching shell PATTERN.");
   std::puts ("  -l                    Use long listing format.");
@@ -146,7 +146,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
   let const require_arg = [&arg, &opt_name]() {
     if (arg.empty ())
       {
-        std::fprintf (stderr, "%s: option ‘--%.*s’ requires and argument\n",
+        std::fprintf (stderr, "%s: option ‘--%.*s’ requires an argument\n",
                       G_program,
                       static_cast<int> (opt_name.size ()), opt_name.data ());
         return true;
