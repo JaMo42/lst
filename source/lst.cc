@@ -662,6 +662,22 @@ def sort_files (FileList &files) -> void
 }
 
 
+static def file_type_letter (const FileInfo &f) -> char
+{
+  switch (f.type)
+    {
+      case fs::file_type::regular:   return '-';
+      case fs::file_type::directory: return 'd';
+      case fs::file_type::symlink:   return 'l';
+      case fs::file_type::block:     return 'b';
+      case fs::file_type::character: return 'c';
+      case fs::file_type::fifo:      return 'p';
+      case fs::file_type::socket:    return 's';
+      default:                       return '?';
+    }
+}
+
+
 static def file_color (const FileInfo &f) -> const char *
 {
   if (f.status_failed)
@@ -950,7 +966,7 @@ def print_long (const FileList &files) -> void
             {
               case LongColumn::type_indicator:
                 {
-                  std::putchar (file_type_letters[static_cast<int> (f.type)]);
+                  std::putchar (file_type_letter (f));
                 }
                 break;
 
