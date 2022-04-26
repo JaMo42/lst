@@ -363,6 +363,7 @@ def list_file (const fs::path &path) -> void
 def list_dir (const fs::path &path) -> void
 {
   FileList *l = &G_directories.emplace_back (std::make_pair (path, FileList {})).second;
+  std::error_code ec;
 
   for (let e : fs::directory_iterator (path))
     {
@@ -380,7 +381,10 @@ def list_dir (const fs::path &path) -> void
             goto skip_file;
         }
 
-      l->emplace_back (e.path (), e.symlink_status ());
+      // This error code is ignored since we do another call to the correct
+      // status function inside the FileInfo constructor and checl the error
+      // code of that.
+      l->emplace_back (e.path (), e.symlink_status (ec));
 
       if (Arguments::recursive && e.is_directory ())
         list_dir (e.path ());
