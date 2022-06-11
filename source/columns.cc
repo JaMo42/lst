@@ -30,7 +30,7 @@ def Columns::add (const FileInfo *f) -> void
   if (is_quoted)
     M_has_quoted = true;
 
-  if (this->total_width () >= Arguments::width)
+  while (this->total_width () >= Arguments::width)
     {
       ++M_rows;
       this->reorder ();
