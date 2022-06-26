@@ -49,7 +49,11 @@ def Columns::print () -> void
           let const &col = M_columns[c];
           let const &elem = col.elems[r];
           if (r >= col.elems.size ())
-            continue;
+            {
+              if (r+1 == M_rows && c+1 == M_columns.size ())
+                std::fputs ("\x1b[2m...\x1b[0m", stdout);
+              continue;
+            }
           if (M_has_quoted)
             {
               if (!elem.is_quoted)
