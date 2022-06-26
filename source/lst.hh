@@ -3,8 +3,6 @@
 #include "unicode.hh"
 #include "options.hh"
 
-static const char file_type_letters[] = "?-dlbcps--";
-
 struct FileInfo
 {
   struct link_target_tag {};

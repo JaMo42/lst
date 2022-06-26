@@ -88,7 +88,7 @@ static def add_frills (const arena::string &str, arena::string &out)
 {
   let const always_quote = Arguments::quoting == QuoteMode::double_;
   let need_quoting = false;
-  let quote_char = always_quote ? '"' :  U'\0';
+  let quote_char = always_quote ? '"' : '\0';
   let p = str.c_str ();
   char32_t c;
   int cp_size = 0;
@@ -102,7 +102,7 @@ static def add_frills (const arena::string &str, arena::string &out)
   let constexpr quote_if_anywhere = " !$&()*;<=>[^`|"sv;
 
   // Pre-process for quotation marks since we need to know ahead of time if we
-  // weill need to escape them in the second loop. We do not need to care about
+  // we'll need to escape them in the second loop. We do not need to care about
   // unicode in this loop.
   for (let const c : str)
     {
@@ -134,7 +134,7 @@ static def add_frills (const arena::string &str, arena::string &out)
     {
       c = unicode::utf8_to_codepoint (p, &cp_size);
 
-      if (c == quote_char)
+      if (c == static_cast<char32_t> (quote_char))
         {
           out.push_back ('\\');
           out.push_back (c);
@@ -662,6 +662,22 @@ def sort_files (FileList &files) -> void
 }
 
 
+static def file_type_letter (const FileInfo &f) -> char
+{
+  switch (f.type)
+    {
+      case fs::file_type::regular:   return '-';
+      case fs::file_type::directory: return 'd';
+      case fs::file_type::symlink:   return 'l';
+      case fs::file_type::block:     return 'b';
+      case fs::file_type::character: return 'c';
+      case fs::file_type::fifo:      return 'p';
+      case fs::file_type::socket:    return 's';
+      default:                       return '?';
+    }
+}
+
+
 static def file_color (const FileInfo &f) -> const char *
 {
   if (f.status_failed)
@@ -950,7 +966,7 @@ def print_long (const FileList &files) -> void
             {
               case LongColumn::type_indicator:
                 {
-                  std::putchar (file_type_letters[static_cast<int> (f.type)]);
+                  std::putchar (file_type_letter (f));
                 }
                 break;
 

@@ -30,7 +30,7 @@ def Columns::add (const FileInfo *f) -> void
   if (is_quoted)
     M_has_quoted = true;
 
-  if (this->total_width () >= Arguments::width)
+  while (this->total_width () >= Arguments::width)
     {
       ++M_rows;
       this->reorder ();
@@ -51,7 +51,7 @@ def Columns::print () -> void
           if (r >= col.elems.size ())
             {
               if (r+1 == M_rows && c+1 == M_columns.size ())
-                std::fputs ("\x1b[2m...\x1b[0m", stdout);
+                std::fputs (" \x1b[2m...\x1b[0m", stdout);
               continue;
             }
           if (M_has_quoted)
