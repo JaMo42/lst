@@ -30,10 +30,25 @@ def Columns::add (const FileInfo *f) -> void
   if (is_quoted)
     M_has_quoted = true;
 
-  while (this->total_width () >= Arguments::width)
+  if (this->total_width () >= Arguments::width)
     {
       ++M_rows;
       this->reorder ();
+      while (this->total_width () >= Arguments::width)
+        {
+          ++M_rows;
+          this->reorder ();
+        }
+      M_columns.erase (
+        std::remove_if (
+          M_columns.begin (),
+          M_columns.end (),
+          [](const Column &col) {
+            return col.elems.empty ();
+          }
+        ),
+        M_columns.end ()
+      );
     }
 }
 
@@ -51,7 +66,7 @@ def Columns::print () -> void
           if (r >= col.elems.size ())
             {
               if (r+1 == M_rows && c+1 == M_columns.size ())
-                std::fputs (" \x1b[2m...\x1b[0m", stdout);
+                std::fputs ("\x1b[2m...\x1b[0m", stdout);
               continue;
             }
           if (M_has_quoted)
@@ -118,3 +133,4 @@ def Columns::next (std::pair<std::size_t, std::size_t> &idx) -> void
       idx.second = 0;
     }
 }
+
