@@ -101,29 +101,32 @@ static def add_frills (const arena::string &str, arena::string &out)
   // Quote the name if it contains any of these
   let constexpr quote_if_anywhere = " !$&()*;<=>[^`|"sv;
 
-  // Pre-process for quotation marks since we need to know ahead of time if we
-  // we'll need to escape them in the second loop. We do not need to care about
-  // unicode in this loop.
-  for (let const c : str)
+  if (Arguments::quoting != QuoteMode::literal)
     {
-      if (c == '\'' && !quote_char) // Prefer single quotes if the name contains both styles
-        quote_char = '"';
-      else if (c == '"' && !always_quote)
-        quote_char = '\'';
-      else if (quote_if_anywhere.find (c) != std::string_view::npos)
+      // Pre-process for quotation marks since we need to know ahead of time if we
+      // we'll need to escape them in the second loop. We do not need to care about
+      // unicode in this loop.
+      for (let const c : str)
+        {
+          if (c == '\'' && !quote_char) // Prefer single quotes if the name contains both styles
+            quote_char = '"';
+          else if (c == '"' && !always_quote)
+            quote_char = '\'';
+          else if (quote_if_anywhere.find (c) != std::string_view::npos)
+            need_quoting = true;
+        }
+      if (!need_quoting && quote_if_first.find (str[0]) != std::string_view::npos)
         need_quoting = true;
+      // These may be special if isolated (line 525 in the above mention source)
+      else if (str == "{" || str == "}")
+        need_quoting = true;
+
+      if (need_quoting && !quote_char)
+        quote_char = '\'';
+
+      if (quote_char)
+        out.push_back (quote_char);
     }
-  if (!need_quoting && quote_if_first.find (str[0]) != std::string_view::npos)
-    need_quoting = true;
-  // These may be special if isolated (line 525 in the above mention source)
-  else if (str == "{" || str == "}")
-    need_quoting = true;
-
-  if (need_quoting && !quote_char)
-    quote_char = '\'';
-
-  if (quote_char)
-    out.push_back (quote_char);
 
   let push_code_point = [&cp_size, &p, &out]() {
     for (let i = 0; i < cp_size; ++i)
@@ -158,7 +161,7 @@ static def add_frills (const arena::string &str, arena::string &out)
         push_code_point ();
     }
 
-  if (quote_char)
+  if (Arguments::quoting != QuoteMode::literal && quote_char)
     out.push_back (quote_char);
 }
 
@@ -692,7 +695,7 @@ static def file_color (const FileInfo &f) -> const char *
       case fs::file_type::directory:  return "\x1b[94m";
       case fs::file_type::symlink:    return "\x1b[96m";
       case fs::file_type::unknown:    return file_name_error_color;
-      default:                   return "";
+      default:                        return "";
     }
 }
 
@@ -709,7 +712,7 @@ def file_indicator (const FileInfo &f) -> char
       case fs::file_type::fifo:       return '|';
       case fs::file_type::socket:     return '=';
       case fs::file_type::not_found:  return '?';
-      default:                   return 0;
+      default:                        return 0;
     }
 }
 
