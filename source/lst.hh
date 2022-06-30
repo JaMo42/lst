@@ -3,6 +3,8 @@
 #include "unicode.hh"
 #include "options.hh"
 
+using Path_String_View = std::basic_string_view<fs::path::value_type>;
+
 struct FileInfo
 {
   struct link_target_tag {};
@@ -79,7 +81,7 @@ def sort_files (FileList &files) -> void;
 
 def file_indicator (const FileInfo &f) -> char;
 
-def print_file_name (const FileInfo &f, int width = 0) -> void;
+def print_file_name (const FileInfo &f, bool have_quoted, int width = 0) -> void;
 
 def print_single_column (const FileList &files) -> void;
 

@@ -729,7 +729,82 @@ static def file_indicator_color (const FileInfo &f) -> const char *
       case fs::file_type::fifo:       return "\x1b[90m";
       case fs::file_type::socket:     return "\x1b[90m";
       case fs::file_type::not_found:  return "\x1b[91m";
-      default:                   return nullptr;
+      default:                        return nullptr;
+    }
+}
+
+
+static def regular_file_icon (const fs::path &p) {
+  using Map = std::unordered_map<Path_String_View, const char *>;
+#ifdef _WIN32
+#  define V(quote) L##quote##sv
+#else
+#  define V(quote) quote##sv
+#endif
+  static const Map by_name = {
+    { V("LICENSE"), "\uF43D" }, // nf-oct-key
+    { V(".gitignore") , "\uF1D3" }, // nf-fa-git
+    { V(".gitmodules") , "\uF1D3" },
+  };
+  static const Map by_extension = {
+    // Text files
+    { V(".txt"), "\uF0F6" }, // nf-fa-file_text_o
+    { V(".md"), "\uF0F6" },
+    // Image files
+    { V(".jpg"), "\uF1C5" }, // nf-fa-file_image_o
+    { V(".jpeg"), "\uF1C5" },
+    { V(".jfif"), "\uF1C5" },
+    { V(".bmp"), "\uF1C5" },
+    { V(".png"), "\uF1C5" },
+    { V(".ppm"), "\uF1C5" },
+    { V(".tif"), "\uF1C5" },
+    { V(".tiff"), "\uF1C5" },
+    { V(".gif"), "\uF1C5" },
+    // Video files
+    { V(".mp4"), "\uF1C8" }, // nf-fa-file_video_o
+    { V(".mp4"), "\uF1C8" },
+    { V(".webm"), "\uF1C8" },
+    { V(".mov"), "\uF1C8" },
+    // Audio files
+    { V(".mp3"), "\uF1C7" }, // nf-fa-file_audio_o
+    { V(".wav"), "\uF1C7" },
+    // Archive files
+    { V(".zip"), "\uF1C6" }, // nf-fa-file_archive_o
+    { V(".7z"), "\uF1C6" },
+    { V(".tar"), "\uF1C6" },
+    { V(".gz"), "\uF1C6" },
+    { V(".bz2"), "\uF1C6" },
+  };
+#undef V
+  if (let const it = by_name.find (p.filename ().native ()); it != by_name.end ())
+    return it->second;
+  if (let const it = by_extension.find (p.extension ().native ()); it != by_extension.end ())
+    return it->second;
+  return "\uF016"; // nf-fa-file_o
+}
+
+
+static def file_icon (const FileInfo &f) -> const char *
+{
+  if (f.is_executable)
+    return "\uF489"; // nf-oct-terminal
+  else if (f.is_temporary)
+    return "\uF014"; // nf-fa-trash_o
+  else if (f.status_failed)
+    return "\uFB12"; // nf-mdi-file_hidden
+
+  switch (f.type)
+    {
+      case fs::file_type::directory: return "\uF115"; // nf-fa-folder_open_o
+      case fs::file_type::symlink:
+        if (f.target && f.target->type == fs::file_type::directory)
+                                     return "\uF482"; // nf-oct-file_symlink_directory
+        else
+                                     return "\uF481"; // nf-oct-file_symlink_file
+      case fs::file_type::fifo:      return "\uFCE3"; // nf-mdi-pipe
+      case fs::file_type::socket:    return "\uFBF1"; // nf-mdi-network
+      case fs::file_type::not_found: return "\x1b[91m\uFB12\x1b[0m"; // nf-mdi-file_hidden
+      default:                       return regular_file_icon (f._path);
     }
 }
 
@@ -751,16 +826,31 @@ static def file_name_width (const FileInfo &f) -> int
         w += unicode::display_width (file_indicator (f));
     }
 
+  if (Arguments::file_icons)
+    // Icon + Space; cannot use icons that are 2 cells wide.
+    w += 2;
+
   return w;
 }
 
 
-def print_file_name (const FileInfo &f, int width) -> void
+def print_file_name (const FileInfo &f, bool have_quoted, int width) -> void
 {
   static arena::string padding_buffer;
   // File name
   if (Arguments::color)
     std::fputs (file_color (f), stdout);
+  if (Arguments::file_icons)
+    {
+      std::fputs (file_icon (f), stdout);
+      if (!have_quoted || !(f.name.front () == '\'' || f.name.front () == '"'))
+        std::putchar (' ');
+    }
+  else
+    {
+      if (have_quoted && !(f.name.front () == '\'' || f.name.front () == '"'))
+        std::putchar (' ');
+    }
   if (Arguments::hyperlinks)
     std::printf ("\x1b]8;;file:///%s\x1b\\%s\x1b]8;;\x1b\\",
                  unicode::path_to_str (f._path).c_str (),
@@ -789,7 +879,7 @@ def print_file_name (const FileInfo &f, int width) -> void
   if (f.target && (Arguments::long_listing || Arguments::single_column))
     {
       std::fputs (" -> ", stdout);
-      print_file_name (*f.target);
+      print_file_name (*f.target, false);
     }
   // Padding
   if (width)
@@ -908,9 +998,7 @@ def print_single_column (const FileList &files) -> void
 
   for (let const &f : files)
     {
-      if (has_quoted && !(f.name.front () == '\'' || f.name.front () == '"'))
-        std::putchar (' ');
-      print_file_name (f);
+      print_file_name (f, has_quoted);
       std::putchar ('\n');
     }
 }
@@ -919,9 +1007,8 @@ def print_single_column (const FileList &files) -> void
 def print_long (const FileList &files) -> void
 {
   arena::string size_buf;
-  //const int date_sz = 14;
-  //char date_buf[date_sz];
   bool invalid_time = false;
+  bool has_quoted = false;
 
   int name_width = 0, link_width = 0, owner_width = 0, group_width = 0,
       size_width = 0, time_width = Arguments::time_format ? 0 : 13;
@@ -951,6 +1038,11 @@ def print_long (const FileList &files) -> void
           let const t = std::localtime (&f.time);
           time_width = std::max (time_width, strftime_width (t));
         }
+      if (!has_quoted
+           && (Arguments::quoting == QuoteMode::default_)
+           && (f.name.front () == '\'' || f.name.front () == '"')
+           && (f.name.front () == f.name.back ()))
+        has_quoted = true;
     }
 
   let const date_sz = time_width + 1;
@@ -1085,7 +1177,7 @@ def print_long (const FileList &files) -> void
 
               case LongColumn::name:
                 {
-                  print_file_name (f, name_width);
+                  print_file_name (f, has_quoted, name_width);
                 }
                 break;
 

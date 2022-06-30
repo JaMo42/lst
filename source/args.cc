@@ -8,9 +8,9 @@ namespace Arguments
 bool all = false;
 bool long_listing = false;
 bool single_column = false;
-bool color = true;
+bool color; // defaults to auto
 bool recursive = false;
-bool classify = true;
+bool classify = false;
 bool file_type = false;
 bool immediate_dirs = false;
 bool reverse = false;
@@ -30,6 +30,7 @@ TimeMode time_mode = TimeMode::write;
 const char *time_format = nullptr;
 bool hyperlinks = false;
 arena::vector<std::string_view> ignore_patterns;
+bool file_icons; // defaults to auto
 }
 
 const char *G_program;
@@ -44,9 +45,10 @@ static def usage ()
   std::puts ("  -b, --escape          Print C-style escapes for nongraphic characters.");
   std::puts ("  -B, --ignore-backups  Do not list entries ending with '~', '.bak', or '.tmp'");
   std::puts ("  -c                    Use creation time for time.");
+  std::puts ("      --color[=WHEN]    Colorize the output WHEN; more info below");
   std::puts ("  -d, --directory       Show directory names instead of contents.");
   std::puts ("  -D,                   Do not group directories before files.");
-  std::puts ("  -F, --no-classify     Do not append indicator to entries.");
+  std::puts ("  -F, --classify        Append indicator to entries.");
   std::puts ("      --file-type       Do not append '*' indicator.");
   std::puts ("      --format=FORMAT   Format string for long listing format");
   std::puts ("                          '$t': Type indicator");
@@ -65,6 +67,7 @@ static def usage ()
   std::puts ("  -h, --human-readable  Print sizes like 1K 234M 2G etc.");
   std::puts ("      --hyperlink       Hyperlink file names.");
   std::puts ("      --si              Like -h, but use powers of 1000 not 1024.");
+  std::puts ("      --icons[=WHEN]    Show file type icons WHEN; more info below");
   std::puts ("      --ignore=PATTERN  Do not list entries matching shell PATTERN.");
   std::puts ("  -l                    Use long listing format.");
   std::puts ("  -L, --dereference     When showing file information about a symbolic link,");
@@ -100,6 +103,15 @@ static def usage ()
   std::puts ("  -1                    List one file per line.");
   std::puts ("      --english-errors  For Windows, print filesystem related error messages");
   std::puts ("                          in english instead of the current display language.");
+  std::putchar ('\n');
+  std::puts ("The WHEN argument can be 'always', 'auto', or 'never'. With 'auto' it is only");
+  std::puts ("enabled when standard output is connected to a terminal. The default for");
+  std::puts ("--color and --icons is 'auto'.");
+  std::putchar ('\n');
+  if (G_is_a_tty)
+    std::puts ("File icons require a \x1b]8;;https://www.nerdfonts.com\x1b\\Nerd Font\x1b]8;;\x1b\\.");
+  else
+    std::puts ("File icons require a Nerd Font (https://www.nerdfonts.com).");
 }
 
 static inline def handle_short_opt (char flag)
@@ -110,7 +122,7 @@ static inline def handle_short_opt (char flag)
       case 'l': Arguments::long_listing = true; break;
       case '1': Arguments::single_column = true; break;
       case 'R': Arguments::recursive = true; break;
-      case 'F': Arguments::classify = false; break;
+      case 'F': Arguments::classify = true; break;
       case 'v': Arguments::sort_mode = SortMode::version; break;
       case 'S': Arguments::sort_mode = SortMode::size; break;
       case 'X': Arguments::sort_mode = SortMode::extension; break;
@@ -154,6 +166,16 @@ static inline def handle_long_opt (std::string_view elem) -> bool
     return false;
   };
 
+  let const invalid_arg = [&arg, &opt_name](std::initializer_list<const char *> valid) {
+    std::fprintf (stderr, "%s: invalid argument ‘%.*s’ for ‘--%.*s’\n",
+                  G_program,
+                  static_cast<int> (arg.size ()), arg.data (),
+                  static_cast<int> (opt_name.size ()), opt_name.data ());
+    std::fputs ("Valid arguments are:\n", stderr);
+    for (auto v : valid)
+      std::fputs (v, stderr);
+  };
+
   using namespace Arguments;
 
   if (opt_name == "help")
@@ -163,7 +185,7 @@ static inline def handle_long_opt (std::string_view elem) -> bool
     }
   else if (opt_name ==                     "all"sv) all = true;
   else if (opt_name ==               "recursive"sv) recursive = true;
-  else if (opt_name ==             "no-classify"sv) classify = false;
+  else if (opt_name ==                "classify"sv) classify = true;
   else if (opt_name ==               "file-type"sv) file_type = true;
   else if (opt_name ==                 "literal"sv) quoting = QuoteMode::literal;
   else if (opt_name ==              "quote-name"sv) quoting = QuoteMode::double_;
@@ -190,14 +212,11 @@ static inline def handle_long_opt (std::string_view elem) -> bool
         Arguments::color = G_is_a_tty;
       else
         {
-          std::fprintf (stderr, "%s: invalid argument ‘%.*s’ for ‘--%.*s’\n",
-                        G_program,
-                        static_cast<int> (arg.size ()), arg.data (),
-                        static_cast<int> (opt_name.size ()), opt_name.data ());
-          std::fputs ("Valid arguments are:\n", stderr);
-          std::fputs ("  - ‘always’, ‘yes’\n", stderr);
-          std::fputs ("  - ‘never’, ‘no’\n", stderr);
-          std::fputs ("  - ‘auto’, ‘tty’\n", stderr);
+          invalid_arg ({
+            "  - ‘always’, ‘yes’\n",
+            "  - ‘never’, ‘no’\n",
+            "  - ‘auto’, ‘tty’\n"
+          });
           return false;
         }
     }
@@ -213,17 +232,14 @@ static inline def handle_long_opt (std::string_view elem) -> bool
       else if (arg ==     "width"sv) Arguments::sort_mode = SortMode::width;
       else
         {
-          std::fprintf (stderr, "%s: invalid argument ‘%.*s’ for ‘--%.*s’\n",
-                        G_program,
-                        static_cast<int> (arg.size ()), arg.data (),
-                        static_cast<int> (opt_name.size ()), opt_name.data ());
-          std::fputs ("Valid arguments are:\n", stderr);
-          std::fputs ("  - ‘none’\n", stderr);
-          std::fputs ("  - ‘extension’\n", stderr);
-          std::fputs ("  - ‘size’\n", stderr);
-          std::fputs ("  - ‘time’\n", stderr);
-          std::fputs ("  - ‘version’\n", stderr);
-          std::fputs ("  - ‘width’\n", stderr);
+          invalid_arg ({
+            "  - ‘none’\n",
+            "  - ‘extension’\n",
+            "  - ‘size’\n",
+            "  - ‘time’\n",
+            "  - ‘version’\n",
+            "  - ‘width’\n"
+          });
           return false;
         }
     }
@@ -261,14 +277,11 @@ static inline def handle_long_opt (std::string_view elem) -> bool
         Arguments::time_mode = TimeMode::creation;
       else
         {
-          std::fprintf (stderr, "%s: invalid argument ‘%.*s’ for ‘--%.*s’\n",
-                        G_program,
-                        static_cast<int> (arg.size ()), arg.data (),
-                        static_cast<int> (opt_name.size ()), opt_name.data ());
-          std::fputs ("Valid arguments are:\n", stderr);
-          std::fputs ("  - ‘atime’, ‘access’, ‘use’\n", stderr);
-          std::fputs ("  - ‘ctime’, ‘write’\n", stderr);
-          std::fputs ("  - ‘creation’, ‘birth’\n", stderr);
+          invalid_arg ({
+            "  - ‘atime’, ‘access’, ‘use’\n",
+            "  - ‘ctime’, ‘write’\n",
+            "  - ‘creation’, ‘birth’\n"
+          });
         }
     }
   else if (opt_name == "time-format"sv)
@@ -280,6 +293,24 @@ static inline def handle_long_opt (std::string_view elem) -> bool
     {
       if (require_arg ()) return false;
       Arguments::ignore_patterns.push_back (arg);
+    }
+  else if (opt_name == "icons"sv)
+    {
+      if (arg.empty () || arg == "always"sv || arg == "yes"sv)
+        Arguments::file_icons = true;
+      else if (arg == "never"sv || arg == "no"sv)
+        Arguments::file_icons = false;
+      else if (arg == "auto"sv || arg == "tty"sv)
+        Arguments::file_icons = G_is_a_tty;
+      else
+        {
+          invalid_arg ({
+            "  - ‘always’, ‘yes’\n",
+            "  - ‘never’, ‘no’\n",
+            "  - ‘auto’, ‘tty’\n"
+          });
+          return false;
+        }
     }
   else
     {
@@ -297,6 +328,9 @@ def parse_args (int argc, const char **argv,
   std::string_view elem;
   int i;
   G_program = argv[0];
+
+  Arguments::color = G_is_a_tty;
+  Arguments::file_icons = G_is_a_tty;
 
   for (i = 1; i < argc; ++i)
     {

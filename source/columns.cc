@@ -9,7 +9,8 @@ Columns::Columns ()
 def Columns::add (const FileInfo *f) -> void
 {
   let const width = (unicode::display_width (f->name)
-                     + (Arguments::classify ? (file_indicator (*f) != 0) : 0));
+                     + (Arguments::classify ? (file_indicator (*f) != 0) : 0)
+                     + (Arguments::file_icons ? 2 : 0));
   let const is_quoted = ((Arguments::quoting == QuoteMode::default_)
                          && (f->name.front () == '\'' || f->name.front () == '"')
                          && (f->name.front () == f->name.back ()));
@@ -54,7 +55,7 @@ def Columns::add (const FileInfo *f) -> void
 
 def Columns::print () -> void
 {
-  static arena::string sep;
+  static arena::string sep { S_separator, ' ' };
 
   for (std::size_t r = 0; r < M_rows; ++r)
     {
@@ -66,19 +67,19 @@ def Columns::print () -> void
           if (r >= col.elems.size ())
             {
               if (r+1 == M_rows && c+1 == M_columns.size ())
-                std::fputs ("\x1b[2m...\x1b[0m", stdout);
+                {
+                  if (M_has_quoted && !Arguments::file_icons)
+                    std::putchar (' ');
+                  std::fputs ("\x1b[2m...\x1b[0m", stdout);
+                }
               continue;
             }
           if (M_has_quoted)
-            {
-              if (!elem.is_quoted)
-                std::putchar (' ');
-              print_file_name (*elem.file, (col.width + elem.is_quoted) * is_not_last);
-            }
+            print_file_name (*elem.file, M_has_quoted, (col.width + elem.is_quoted) * is_not_last);
           else
-            print_file_name (*elem.file, col.width * is_not_last);
+            print_file_name (*elem.file, M_has_quoted, col.width * is_not_last);
           if (is_not_last)
-            std::fputs (sep.assign (S_separator, ' ').c_str (), stdout);
+            std::fputs (sep.c_str (), stdout);
         }
       std::putchar ('\n');
     }
@@ -133,4 +134,3 @@ def Columns::next (std::pair<std::size_t, std::size_t> &idx) -> void
       idx.second = 0;
     }
 }
-
