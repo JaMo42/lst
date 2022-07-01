@@ -66,7 +66,7 @@ def Columns::print () -> void
           let const &elem = col.elems[r];
           if (r >= col.elems.size ())
             {
-              if (r+1 == M_rows && c+1 == M_columns.size ())
+              if (Arguments::file_icons && r+1 == M_rows && c+1 == M_columns.size ())
                 {
                   if (M_has_quoted && !Arguments::file_icons)
                     std::putchar (' ');
