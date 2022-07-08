@@ -57,9 +57,7 @@ def Columns::add (const FileInfo *f) -> void
 
 def Columns::print () -> void
 {
-  static let const sep = arena::string { S_separator, ' ' };
   std::size_t r, c;
-
   for (r = 0; r < M_rows; ++r)
     {
       for (c = 0; c < M_columns.size (); ++c)
@@ -74,7 +72,10 @@ def Columns::print () -> void
           else
             print_file_name (*elem.file, M_has_quoted, col.width * is_not_last);
           if (is_not_last)
-            std::fputs (sep.c_str (), stdout);
+            {
+              std::putchar (' ');
+              std::putchar (' ');
+            }
         }
       if (Arguments::file_icons && G_is_a_tty
           && M_rows >= G_term_height && r+1 == M_rows && c+1 == M_columns.size ())
@@ -89,7 +90,7 @@ def Columns::total_width () const -> std::uint64_t
   let w = 0ull;
   for (let const &c : M_columns)
     w += c.width;
-  w += (M_columns.size () - 1) * (S_separator + M_has_quoted);
+  w += (M_columns.size () - 1) * (2 + M_has_quoted);
   return w;
 }
 

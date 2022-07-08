@@ -60,9 +60,6 @@ private:
   def next (std::pair<std::size_t, std::size_t> &idx) -> void;
 
 private:
-  // Use `separator` spaces as separator
-  static constexpr int S_separator = 2;
-
   arena::vector<Column> M_columns;
   std::size_t M_rows;
   bool M_has_quoted;
