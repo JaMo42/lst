@@ -2,6 +2,8 @@
 #include "args.hh"
 #include "lst.hh"
 
+extern unsigned G_term_height;
+
 class Columns
 {
   struct Element

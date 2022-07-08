@@ -1,5 +1,7 @@
 #include "columns.hh"
 
+unsigned G_term_height;
+
 Columns::Columns ()
   : M_columns {}
   , M_rows (1)
@@ -55,25 +57,18 @@ def Columns::add (const FileInfo *f) -> void
 
 def Columns::print () -> void
 {
-  static arena::string sep { S_separator, ' ' };
+  static let const sep = arena::string { S_separator, ' ' };
+  std::size_t r, c;
 
-  for (std::size_t r = 0; r < M_rows; ++r)
+  for (r = 0; r < M_rows; ++r)
     {
-      for (std::size_t c = 0; c < M_columns.size (); ++c)
+      for (c = 0; c < M_columns.size (); ++c)
         {
           let const is_not_last = (c + 1) < M_columns.size ();
           let const &col = M_columns[c];
           let const &elem = col.elems[r];
           if (r >= col.elems.size ())
-            {
-              if (Arguments::file_icons && r+1 == M_rows && c+1 == M_columns.size ())
-                {
-                  if (M_has_quoted && !Arguments::file_icons)
-                    std::putchar (' ');
-                  std::fputs ("\x1b[2m...\x1b[0m", stdout);
-                }
-              continue;
-            }
+            break;
           if (M_has_quoted)
             print_file_name (*elem.file, M_has_quoted, (col.width + elem.is_quoted) * is_not_last);
           else
@@ -81,7 +76,11 @@ def Columns::print () -> void
           if (is_not_last)
             std::fputs (sep.c_str (), stdout);
         }
-      std::putchar ('\n');
+      if (Arguments::file_icons && G_is_a_tty
+          && M_rows >= G_term_height && r+1 == M_rows && c+1 == M_columns.size ())
+        std::fputs ("\x1b[2m...\n\x1b[0m", stdout);
+      else
+        std::putchar ('\n');
     }
 }
 

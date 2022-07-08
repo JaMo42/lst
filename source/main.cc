@@ -1,5 +1,6 @@
 #include "stdafx.hh"
 #include "lst.hh"
+#include "columns.hh"
 
 def main (const int argc, const char *argv[]) -> int
 {
@@ -76,29 +77,27 @@ def main (const int argc, const char *argv[]) -> int
 #endif
     }
 
-  if (!Arguments::width)
+  if (G_is_a_tty)
     {
-      if (G_is_a_tty)
-        {
-          // Get terminal width
 #ifdef _WIN32
-          CONSOLE_SCREEN_BUFFER_INFO csbi;
-          GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &csbi);
-          Arguments::width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+      CONSOLE_SCREEN_BUFFER_INFO csbi;
+      GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &csbi);
+      if (!Arguments::width)
+        Arguments::width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+      G_term_height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 #else
-          struct winsize ws;
-          ioctl (STDOUT_FILENO, TIOCGWINSZ, &ws);
-          Arguments::width = ws.ws_col;
+      struct winsize ws;
+      ioctl (STDOUT_FILENO, TIOCGWINSZ, &ws);
+      if (!Arguments::width)
+        Arguments::width = ws.ws_col;
+      G_term_height = ws.ws_row;
 #endif
-        }
-      else
-        Arguments::width = 80;
     }
+  else if (!Arguments::width)
+    Arguments::width = 80;
 
   if (Arguments::long_columns.empty ())
-    {
-      parse_long_format (default_long_output_format, Arguments::long_columns);
-    }
+    parse_long_format (default_long_output_format, Arguments::long_columns);
 
   if (args.empty ())
     args.emplace_back (".");
