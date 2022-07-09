@@ -235,7 +235,9 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
   if (handle == INVALID_HANDLE_VALUE
       || !GetFileInformationByHandle (handle, &file_info))
     {
+      S_ec = std::error_code (GetLastError (), std::system_category ());
       complain (p);
+      status_failed = true;
       return;
     }
 #else
@@ -243,7 +245,9 @@ FileInfo::FileInfo (const fs::path &p, const fs::file_status &in_s)
   if ((Arguments::dereference ? stat : lstat)
       (fs::absolute (p).string<char> (arena::Allocator<char> {}).c_str (), &sb) == -1)
     {
+      S_ec = std::error_code (errno, std::system_category ());
       complain (p);
+      status_failed = true;
       return;
     }
   // Alias so we can just use handle and file_info
@@ -385,7 +389,7 @@ def list_dir (const fs::path &path) -> void
         }
 
       // This error code is ignored since we do another call to the correct
-      // status function inside the FileInfo constructor and checl the error
+      // status function inside the FileInfo constructor and check the error
       // code of that.
       l->emplace_back (e.path (), e.symlink_status (ec));
 
