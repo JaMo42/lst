@@ -880,6 +880,8 @@ def print_file_name (const FileInfo &f, bool have_quoted, int width) -> void
   // Link target
   if (f.target && (Arguments::long_listing || Arguments::single_column))
     {
+      if (Arguments::color)
+        std::fputs (text_color, stdout);
       std::fputs (" -> ", stdout);
       print_file_name (*f.target, false);
     }
