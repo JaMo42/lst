@@ -4,6 +4,9 @@
 //////////////////////////////////////////////////////////////////////////
 // Colors
 
+// Color for all other text that doesn't have a special color
+constexpr const char *text_color = "\x1b[39m";
+
 // Color for the '<DIR>' size field in long listings
 constexpr const char *dir_size_color = "\x1b[38;5;61m";
 
@@ -17,7 +20,7 @@ constexpr const char *name_color = "\x1b[37m";
 constexpr const char *error_color = "\x1b[31m";
 
 // Color for file names of files for which std::filesystem::status failed
-constexpr const char *file_name_error_color = "\x1b[33m";
+constexpr const char *file_name_error_color = "\x1b[39m";
 
 //////////////////////////////////////////////////////////////////////////
 // Display

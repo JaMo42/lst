@@ -150,6 +150,8 @@ def main (const int argc, const char *argv[]) -> int
       sort_files (d.second);
       print_files (d.second);
     }
+  if (Arguments::color)
+    std::fputs ("\x1b[0m", stdout);
 
   return 0;
 }

@@ -694,8 +694,10 @@ static def file_color (const FileInfo &f) -> const char *
     {
       case fs::file_type::directory:  return "\x1b[94m";
       case fs::file_type::symlink:    return "\x1b[96m";
+      case fs::file_type::fifo:       return "\x1b[33m";
+      case fs::file_type::socket:     return "\x1b[35m";
       case fs::file_type::unknown:    return file_name_error_color;
-      default:                        return "";
+      default:                        return text_color;
     }
 }
 
@@ -857,8 +859,6 @@ def print_file_name (const FileInfo &f, bool have_quoted, int width) -> void
                  f.name.c_str ());
   else
     std::fputs (f.name.c_str (), stdout);
-  if (Arguments::color)
-    std::fputs ("\x1b[0m", stdout);
   // Indicator
   if (Arguments::classify
       && !(Arguments::long_listing && f.type == fs::file_type::symlink && f.target))
@@ -872,8 +872,6 @@ def print_file_name (const FileInfo &f, bool have_quoted, int width) -> void
       let const indicator = file_indicator (f);
       if (indicator)
         std::putchar (indicator);
-      if (Arguments::color)
-        std::fputs ("\x1b[0m", stdout);
     }
   // Link target
   if (f.target && (Arguments::long_listing || Arguments::single_column))
@@ -938,7 +936,7 @@ static def print_size (std::uintmax_t size, unsigned width = 0) -> int
       else
         {
           if (Arguments::color)
-            return std::printf ("%s%*.1f%s\x1b[0m", file_size_color,
+            return std::printf ("%s%*.1f%s", file_size_color,
                                 width - unit_len, fsize, unit);
           else
             return std::printf ("%*.1f%s", width - unit_len, fsize, unit);
@@ -951,7 +949,7 @@ static def print_size (std::uintmax_t size, unsigned width = 0) -> int
       else
         {
           if (Arguments::color)
-            return std::printf ("%s%*ju\x1b[0m", file_size_color, width, size);
+            return std::printf ("%s%*ju", file_size_color, width, size);
           else
             return std::printf ("%*ju", width, size);
         }
@@ -998,7 +996,11 @@ def print_single_column (const FileList &files) -> void
 
   for (let const &f : files)
     {
+      if (f.status_failed)
+        std::fputs ("\x1b[2m", stdout);
       print_file_name (f, has_quoted);
+      if (f.status_failed)
+        std::fputs ("\x1b[22m", stdout);
       std::putchar ('\n');
     }
 }
@@ -1053,7 +1055,10 @@ def print_long (const FileList &files) -> void
   for (let const &f : files)
     {
       if (f.status_failed)
-        invalid_time = true;
+        {
+          invalid_time = true;
+          std::fputs ("\x1b[2m", stdout);
+        }
 
       for (let const &col : Arguments::long_columns)
         {
@@ -1061,12 +1066,16 @@ def print_long (const FileList &files) -> void
             {
               case LongColumn::type_indicator:
                 {
+                  if (Arguments::color)
+                    std::fputs (text_color, stdout);
                   std::putchar (file_type_letter (f));
                 }
                 break;
 
               case LongColumn::rwx_perms:
                 {
+                  if (Arguments::color)
+                    std::fputs (text_color, stdout);
                   std::putchar ((f.perms & fs::perms::owner_read) != fs::perms::none ? 'r' : '-');
                   std::putchar ((f.perms & fs::perms::owner_write) != fs::perms::none ? 'w' : '-');
                   std::putchar ((f.perms & fs::perms::owner_exec) != fs::perms::none ? 'x' : '-');
@@ -1081,6 +1090,8 @@ def print_long (const FileList &files) -> void
 
               case LongColumn::oct_perms:
                 {
+                  if (Arguments::color)
+                    std::fputs (text_color, stdout);
                   let static constexpr owner_mask = (fs::perms::owner_read
                                                      | fs::perms::owner_write
                                                      | fs::perms::owner_exec);
@@ -1099,6 +1110,8 @@ def print_long (const FileList &files) -> void
 
               case LongColumn::hard_link_count:
                 {
+                  if (Arguments::color)
+                    std::fputs (text_color, stdout);
                   std::printf ("%*d", link_width, f.link_count);
                 }
                 break;
@@ -1113,8 +1126,6 @@ def print_long (const FileList &files) -> void
                   std::printf ("%*s",
                                owner_width + unicode::padding_offset (f.owner),
                                f.owner.c_str ());
-                  if (Arguments::color)
-                    std::fputs ("\x1b[0m", stdout);
                 }
                 break;
 
@@ -1128,8 +1139,6 @@ def print_long (const FileList &files) -> void
                   std::printf ("%*s",
                                group_width + unicode::padding_offset (f.group),
                                f.group.c_str ());
-                  if (Arguments::color)
-                    std::fputs ("\x1b[0m", stdout);
                 }
                 break;
 
@@ -1138,7 +1147,7 @@ def print_long (const FileList &files) -> void
                   if (f.type == fs::file_type::directory)
                     {
                       if (Arguments::color)
-                        std::printf ("%s%*s\x1b[0m", dir_size_color,
+                        std::printf ("%s%*s", dir_size_color,
                                      size_width, "<DIR>");
                       else
                         std::printf ("%*s", size_width, "<DIR>");
@@ -1150,9 +1159,11 @@ def print_long (const FileList &files) -> void
 
               case LongColumn::date:
                 {
+                  if (Arguments::color)
+                    std::fputs (text_color, stdout);
                   if (invalid_time || !f.time)
                     {
-                      std::printf ("%s%*c\x1b[0m", error_color, time_width, '?');
+                      std::printf ("%s%*c", error_color, time_width, '?');
                       invalid_time = false;
                     }
                   else
@@ -1183,6 +1194,8 @@ def print_long (const FileList &files) -> void
 
               case LongColumn::text:
                 {
+                  if (Arguments::color)
+                    std::fputs (text_color, stdout);
                   let const text = col.get_text ();
                   if (text.size () == 1)
                     std::putchar (text.front ());
@@ -1193,6 +1206,8 @@ def print_long (const FileList &files) -> void
                 break;
             }
         }
+      if (f.status_failed)
+        std::fputs ("\x1b[22m", stdout);
       std::putchar ('\n');
     }
 }
