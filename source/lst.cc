@@ -768,7 +768,6 @@ static def regular_file_icon (const fs::path &p) {
     { V(".gif"), "\uF1C5" },
     // Video files
     { V(".mp4"), "\uF1C8" }, // nf-fa-file_video_o
-    { V(".mp4"), "\uF1C8" },
     { V(".webm"), "\uF1C8" },
     { V(".mov"), "\uF1C8" },
     // Audio files
