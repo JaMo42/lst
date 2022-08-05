@@ -391,7 +391,8 @@ def list_dir (const fs::path &path) -> void
       // This error code is ignored since we do another call to the correct
       // status function inside the FileInfo constructor and check the error
       // code of that.
-      l->emplace_back (e.path (), e.symlink_status (ec));
+      l->emplace_back (fs::weakly_canonical (e.path ()),
+                       e.symlink_status (ec));
 
       if (Arguments::recursive && e.is_directory ())
         list_dir (e.path ());
