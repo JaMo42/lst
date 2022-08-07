@@ -12,3 +12,7 @@ git submodule update
 mkdir build
 make
 ```
+
+## Usage
+
+Behavior is similar to GNU ls, run `lst --help` for a list of options.
