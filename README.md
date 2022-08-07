@@ -2,6 +2,8 @@
 
 Directory listing program.
 
+![lst](./screenshot.png)
+
 ## Building
 
 ```shell
