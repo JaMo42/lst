@@ -145,7 +145,7 @@ def main (const int argc, const char *argv[]) -> int
         sep = true;
 
       if (need_label)
-        std::printf ("%s:\n", d.first.string ().c_str ());
+        std::printf ("\x1b[0m%s:\n", d.first.string ().c_str ());
 
       sort_files (d.second);
       print_files (d.second);
