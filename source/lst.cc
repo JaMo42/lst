@@ -371,6 +371,7 @@ def list_dir (const fs::path &path) -> void
 {
   FileList *l = &G_directories.emplace_back (std::make_pair (path, FileList {})).second;
   std::error_code ec;
+  fs::path canonical;
 
   for (let e : fs::directory_iterator (path))
     {
@@ -388,11 +389,18 @@ def list_dir (const fs::path &path) -> void
             goto skip_file;
         }
 
+#ifdef _WIN32
+      canonical = fs::weakly_canonical (e.path (), ec);
+      if (ec)
+        canonical = e.path ();
+#else
+      canonical = fs::weakly_canonical (e.path ());
+#endif
+
       // This error code is ignored since we do another call to the correct
       // status function inside the FileInfo constructor and check the error
       // code of that.
-      l->emplace_back (fs::weakly_canonical (e.path ()),
-                       e.symlink_status (ec));
+      l->emplace_back (canonical, e.symlink_status (ec));
 
       if (Arguments::recursive && e.is_directory ())
         list_dir (e.path ());
