@@ -27,7 +27,10 @@ OBJ = $(patsubst %.cc,build/%.o,$(SRC))
 OBJ += build/arena_alloc.o
 DEP = $(wildcard source/*.hh)
 
-all: source/stdafx.hh.gch $(OUT)
+all: build source/stdafx.hh.gch $(OUT)
+
+build:
+	mkdir -p build
 
 source/stdafx.hh.gch: source/stdafx.hh
 	@echo ' CXX  $@'
