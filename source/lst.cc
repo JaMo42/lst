@@ -389,18 +389,10 @@ def list_dir (const fs::path &path) -> void
             goto skip_file;
         }
 
-#ifdef _WIN32
-      canonical = fs::weakly_canonical (e.path (), ec);
-      if (ec)
-        canonical = e.path ();
-#else
-      canonical = fs::weakly_canonical (e.path ());
-#endif
-
       // This error code is ignored since we do another call to the correct
       // status function inside the FileInfo constructor and check the error
       // code of that.
-      l->emplace_back (canonical, e.symlink_status (ec));
+      l->emplace_back (e.path (), e.symlink_status (ec));
 
       if (Arguments::recursive && e.is_directory ())
         list_dir (e.path ());
@@ -866,9 +858,15 @@ def print_file_name (const FileInfo &f, bool have_quoted, int width) -> void
         std::putchar (' ');
     }
   if (Arguments::hyperlinks)
-    std::printf ("\x1b]8;;file:///%s\x1b\\%s\x1b]8;;\x1b\\",
-                 unicode::path_to_str (f._path).c_str (),
-                 f.name.c_str ());
+    {
+      std::error_code error;
+      let link_path = fs::weakly_canonical (f._path, error);
+      if (error)
+        link_path = f._path;
+      std::printf ("\x1b]8;;file:///%s\x1b\\%s\x1b]8;;\x1b\\",
+                  unicode::path_to_str (link_path).c_str (),
+                  f.name.c_str ());
+    }
   else
     std::fputs (f.name.c_str (), stdout);
   // Indicator
