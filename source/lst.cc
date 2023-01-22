@@ -615,6 +615,7 @@ def sort_files (FileList &files) -> void
             sort = SORT_FUNC {
               return (compare_path (a._path, b._path) < 0) ^ Arguments::reverse;
             };
+
           break; case SortMode::extension:
             sort = SORT_FUNC {
               let const c = compare_path (a._path.extension (),
@@ -623,6 +624,7 @@ def sort_files (FileList &files) -> void
               return (((c ? c : compare_path (a._path, b._path)) < 0)
                       ^ Arguments::reverse);
             };
+
           break; case SortMode::size:
             sort = SORT_FUNC {
               // If both sizes are equal, compare the filename
@@ -631,6 +633,7 @@ def sort_files (FileList &files) -> void
                        : a.size > b.size)
                       ^ Arguments::reverse);
             };
+
           break; case SortMode::time:
             sort = SORT_FUNC {
               let const d = difftime (a.time, b.time);
@@ -638,6 +641,7 @@ def sort_files (FileList &files) -> void
               return ((d ? d > 0 : compare_path (a._path, b._path) < 0)
                       ^ Arguments::reverse);
             };
+
           break; case SortMode::version:
             sort = SORT_FUNC {
               (void)compare_path;  // Suppress unused capture warning
@@ -645,6 +649,7 @@ def sort_files (FileList &files) -> void
                                        b._path.filename ()) < 0)
                       ^ Arguments::reverse);
             };
+
           break; case SortMode::width:
             sort = SORT_FUNC {
               let const awidth = unicode::display_width (unicode::path_to_str (a._path));
@@ -653,6 +658,7 @@ def sort_files (FileList &files) -> void
                       ? compare_path (a._path, b._path) < 0
                       : awidth < bwidth);
             };
+
           break; case SortMode::none:;
         }
     }
@@ -767,6 +773,7 @@ static def regular_file_icon (const fs::path &p) {
     { V(".tif"), "\uF1C5" },
     { V(".tiff"), "\uF1C5" },
     { V(".gif"), "\uF1C5" },
+    { V(".svg"), "\uF1C5" },
     // Video files
     { V(".mp4"), "\uF1C8" }, // nf-fa-file_video_o
     { V(".webm"), "\uF1C8" },
