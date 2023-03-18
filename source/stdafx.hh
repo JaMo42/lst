@@ -16,6 +16,7 @@
 #include <list>
 #include <bitset>
 #include <map>
+#include <optional>
 
 #include <algorithm>
 #include <filesystem>

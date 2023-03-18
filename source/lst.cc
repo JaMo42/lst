@@ -361,6 +361,30 @@ FileInfo::~FileInfo ()
 }
 
 
+def path_exists (const fs::path &path) -> PathExists
+{
+  let const exists = fs::exists(path, S_ec);
+  if (S_ec)
+    {
+      complain(path);
+      return PathExists::NoAccess;
+    }
+  return exists ? PathExists::Yes : PathExists::No;
+}
+
+
+def can_list (const fs::path &path) -> bool
+{
+  (void)fs::directory_iterator(path, S_ec);
+  if (S_ec)
+    {
+      complain(path);
+      return false;
+    }
+  return true;
+}
+
+
 def list_file (const fs::path &path) -> void
 {
   G_singles.emplace_back (path, fs::symlink_status (path));
@@ -369,11 +393,18 @@ def list_file (const fs::path &path) -> void
 
 def list_dir (const fs::path &path) -> void
 {
-  FileList *l = &G_directories.emplace_back (std::make_pair (path, FileList {})).second;
+  let dir_it = fs::directory_iterator(path, S_ec);
+  if (S_ec)
+    {
+      complain(path);
+      return;
+    }
+
   std::error_code ec;
+  FileList *l = &G_directories.emplace_back (std::make_pair (path, FileList {})).second;
   fs::path canonical;
 
-  for (let e : fs::directory_iterator (path))
+  for (let e : dir_it)
     {
       let const pstr = unicode::path_to_str (e.path ().filename ());
       if (!Arguments::all && pstr[0] == '.')
