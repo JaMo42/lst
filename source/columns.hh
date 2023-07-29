@@ -63,4 +63,5 @@ private:
   arena::vector<Column> M_columns;
   std::size_t M_rows;
   bool M_has_quoted;
+  bool M_single_column;
 };

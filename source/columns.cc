@@ -6,6 +6,7 @@ Columns::Columns ()
   : M_columns {}
   , M_rows (1)
   , M_has_quoted (false)
+  , M_single_column (false)
 {}
 
 def Columns::add (const FileInfo *f) -> void
@@ -16,6 +17,18 @@ def Columns::add (const FileInfo *f) -> void
   let const is_quoted = ((Arguments::quoting == QuoteMode::default_)
                          && (f->name.front () == '\'' || f->name.front () == '"')
                          && (f->name.front () == f->name.back ()));
+
+  if (M_single_column || (unsigned)width+2 >= Arguments::width)
+    {
+      if (!M_single_column)
+        {
+          M_rows = (std::size_t)-1;
+          this->reorder ();
+          M_single_column = true;
+        }
+      M_columns[0].add(f, width, is_quoted);
+      return;
+    }
 
   let c = std::find_if (M_columns.begin (), M_columns.end (), [&](const Column &c){
     return c.elems.size () < M_rows;
@@ -57,6 +70,14 @@ def Columns::add (const FileInfo *f) -> void
 
 def Columns::print () -> void
 {
+  if (M_single_column)
+    {
+      // don't print eighteen quintillion rows
+      M_rows = M_columns[0].elems.size();
+      // don't print superfluous padding, this is would add empty lines between
+      // all the elements that aren't wider than the terminal width.
+      M_columns[0].width = 0;
+    }
   std::size_t r, c;
   for (r = 0; r < M_rows; ++r)
     {
