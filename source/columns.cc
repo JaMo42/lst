@@ -67,13 +67,13 @@ def Columns::print () -> void
           let const &elem = col.elems[r];
           if (r >= col.elems.size ())
             break;
-          if (elem.file->status_failed)
+          if (elem.file->status_failed && Arguments::color)
             std::fputs ("\x1b[2m", stdout);
           if (M_has_quoted)
             print_file_name (*elem.file, M_has_quoted, (col.width + elem.is_quoted) * is_not_last);
           else
             print_file_name (*elem.file, M_has_quoted, col.width * is_not_last);
-          if (elem.file->status_failed)
+          if (elem.file->status_failed && Arguments::color)
             std::fputs ("\x1b[22m", stdout);
           if (is_not_last)
             {

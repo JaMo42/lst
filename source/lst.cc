@@ -1008,10 +1008,10 @@ def print_single_column (const FileList &files) -> void
 
   for (let const &f : files)
     {
-      if (f.status_failed)
+      if (f.status_failed && Arguments::color)
         std::fputs ("\x1b[2m", stdout);
       print_file_name (f, has_quoted);
-      if (f.status_failed)
+      if (f.status_failed && Arguments::color)
         std::fputs ("\x1b[22m", stdout);
       std::putchar ('\n');
     }
@@ -1069,7 +1069,8 @@ def print_long (const FileList &files) -> void
       if (f.status_failed)
         {
           invalid_time = true;
-          std::fputs ("\x1b[2m", stdout);
+          if (Arguments::color)
+            std::fputs ("\x1b[2m", stdout);
         }
 
       for (let const &col : Arguments::long_columns)
@@ -1175,7 +1176,10 @@ def print_long (const FileList &files) -> void
                     std::fputs (text_color, stdout);
                   if (invalid_time || !f.time)
                     {
-                      std::printf ("%s%*c", error_color, time_width, '?');
+                      if (Arguments::color)
+                        std::printf ("%s%*c", error_color, time_width, '?');
+                      else
+                        std::printf ("%*c", time_width, '?');
                       invalid_time = false;
                     }
                   else
@@ -1218,7 +1222,7 @@ def print_long (const FileList &files) -> void
                 break;
             }
         }
-      if (f.status_failed)
+      if (f.status_failed && Arguments::color)
         std::fputs ("\x1b[22m", stdout);
       std::putchar ('\n');
     }
