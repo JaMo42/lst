@@ -5,6 +5,13 @@
 
 using Path_String_View = std::basic_string_view<fs::path::value_type>;
 
+enum class PathExists
+{
+  No,
+  Yes,
+  NoAccess,
+};
+
 struct FileInfo
 {
   struct link_target_tag {};
@@ -48,6 +55,10 @@ extern std::map<uid_t, arena::string> G_groups;
 
 extern FileList G_singles;
 extern std::list<std::pair<fs::path, FileList>> G_directories;
+
+def path_exists (const fs::path &path) -> PathExists;
+
+def can_list (const fs::path &path) -> bool;
 
 def list_file (const fs::path &path) -> void;
 

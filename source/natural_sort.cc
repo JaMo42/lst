@@ -45,6 +45,12 @@ def natural_compare (std::string_view a, std::string_view b) -> int
   b_pos = b.find_first_of (digits);
   if ((c = compare_non_digit (a.substr (0, a_pos), b.substr (0, b_pos))) != 0)
     return c;
+  // Repeat empty string check for cases like "abc0" and "abc", where "abc"
+  // should be first but strtoull would just parse the empty string as 0.
+  if (a_pos == std::string_view::npos)
+    return -1;
+  if (b_pos == std::string_view::npos)
+    return 1;
   // Compare first digit part
   a.remove_prefix (a_pos);
   b.remove_prefix (b_pos);

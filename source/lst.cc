@@ -361,6 +361,30 @@ FileInfo::~FileInfo ()
 }
 
 
+def path_exists (const fs::path &path) -> PathExists
+{
+  let const exists = fs::exists(path, S_ec);
+  if (S_ec)
+    {
+      complain(path);
+      return PathExists::NoAccess;
+    }
+  return exists ? PathExists::Yes : PathExists::No;
+}
+
+
+def can_list (const fs::path &path) -> bool
+{
+  (void)fs::directory_iterator(path, S_ec);
+  if (S_ec)
+    {
+      complain(path);
+      return false;
+    }
+  return true;
+}
+
+
 def list_file (const fs::path &path) -> void
 {
   G_singles.emplace_back (path, fs::symlink_status (path));
@@ -369,11 +393,18 @@ def list_file (const fs::path &path) -> void
 
 def list_dir (const fs::path &path) -> void
 {
-  FileList *l = &G_directories.emplace_back (std::make_pair (path, FileList {})).second;
+  let dir_it = fs::directory_iterator(path, S_ec);
+  if (S_ec)
+    {
+      complain(path);
+      return;
+    }
+
   std::error_code ec;
+  FileList *l = &G_directories.emplace_back (std::make_pair (path, FileList {})).second;
   fs::path canonical;
 
-  for (let e : fs::directory_iterator (path))
+  for (let e : dir_it)
     {
       let const pstr = unicode::path_to_str (e.path ().filename ());
       if (!Arguments::all && pstr[0] == '.')
@@ -615,6 +646,7 @@ def sort_files (FileList &files) -> void
             sort = SORT_FUNC {
               return (compare_path (a._path, b._path) < 0) ^ Arguments::reverse;
             };
+
           break; case SortMode::extension:
             sort = SORT_FUNC {
               let const c = compare_path (a._path.extension (),
@@ -623,6 +655,7 @@ def sort_files (FileList &files) -> void
               return (((c ? c : compare_path (a._path, b._path)) < 0)
                       ^ Arguments::reverse);
             };
+
           break; case SortMode::size:
             sort = SORT_FUNC {
               // If both sizes are equal, compare the filename
@@ -631,6 +664,7 @@ def sort_files (FileList &files) -> void
                        : a.size > b.size)
                       ^ Arguments::reverse);
             };
+
           break; case SortMode::time:
             sort = SORT_FUNC {
               let const d = difftime (a.time, b.time);
@@ -638,6 +672,7 @@ def sort_files (FileList &files) -> void
               return ((d ? d > 0 : compare_path (a._path, b._path) < 0)
                       ^ Arguments::reverse);
             };
+
           break; case SortMode::version:
             sort = SORT_FUNC {
               (void)compare_path;  // Suppress unused capture warning
@@ -645,6 +680,7 @@ def sort_files (FileList &files) -> void
                                        b._path.filename ()) < 0)
                       ^ Arguments::reverse);
             };
+
           break; case SortMode::width:
             sort = SORT_FUNC {
               let const awidth = unicode::display_width (unicode::path_to_str (a._path));
@@ -653,6 +689,7 @@ def sort_files (FileList &files) -> void
                       ? compare_path (a._path, b._path) < 0
                       : awidth < bwidth);
             };
+
           break; case SortMode::none:;
         }
     }
@@ -767,6 +804,7 @@ static def regular_file_icon (const fs::path &p) {
     { V(".tif"), "\uF1C5" },
     { V(".tiff"), "\uF1C5" },
     { V(".gif"), "\uF1C5" },
+    { V(".svg"), "\uF1C5" },
     // Video files
     { V(".mp4"), "\uF1C8" }, // nf-fa-file_video_o
     { V(".webm"), "\uF1C8" },

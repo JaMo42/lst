@@ -107,15 +107,23 @@ def main (const int argc, const char *argv[]) -> int
   for (let &a : args)
     {
       a.make_preferred ();
-      if (!fs::exists (a))
+      if (let exists = path_exists (a); exists != PathExists::Yes)
         {
-          std::printf ("%s: '%s': No such file or directory\n", G_program,
-                       unicode::path_to_str (a).c_str ());
+          if (exists == PathExists::No)
+            std::printf ("%s: '%s': No such file or directory\n", G_program,
+                         unicode::path_to_str (a).c_str ());
           need_label = true;
           continue;
         }
       else if (!Arguments::immediate_dirs && fs::is_directory (a))
-        list_dir (a);
+        {
+          if (!can_list (a))
+            {
+              need_label = true;
+              continue;
+            }
+          list_dir (a);
+        }
       else
         list_file (a);
     }
